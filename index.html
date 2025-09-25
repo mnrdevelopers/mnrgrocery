@@ -742,6 +742,118 @@
             50% { opacity: 0.5; }
             100% { opacity: 1; }
         }
+
+          /* Add logout button styles */
+        .logout-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            transition: background-color 0.2s;
+        }
+
+        .logout-btn:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .settings-content {
+            padding: 20px 0;
+        }
+
+        .settings-section {
+            margin-bottom: 25px;
+        }
+
+        .settings-title {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: var(--text-primary);
+            border-bottom: 1px solid var(--divider);
+            padding-bottom: 10px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: var(--primary-light);
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .user-avatar-large {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            font-weight: bold;
+        }
+
+        .user-details h3 {
+            margin-bottom: 5px;
+        }
+
+        .user-details p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .family-info-settings {
+            background: var(--primary-light);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .family-code-display {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .family-code {
+            background: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 1.1rem;
+            letter-spacing: 2px;
+            flex: 1;
+        }
+
+        .copy-btn {
+            padding: 10px 15px;
+        }
+
+        .danger-zone {
+            border: 1px solid var(--danger);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 30px;
+        }
+
+        .danger-zone h3 {
+            color: var(--danger);
+            margin-bottom: 15px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -795,6 +907,8 @@
                     <button id="joinFamilyBtn">Join</button>
                 </div>
             </div>
+            
+            <button id="logoutFromSetup" class="outline full-width" style="margin-top: 20px;">Logout</button>
         </div>
     </div>
 
@@ -823,74 +937,129 @@
                     <div class="family-members" id="familyMembers">
                         <!-- Family member avatars will be inserted here -->
                     </div>
+                    <button class="logout-btn" id="headerLogout" title="Logout">🚪</button>
                 </div>
             </div>
         </header>
 
         <div class="container">
-            <div class="total-cost">
-                <h3>Estimated Total Cost</h3>
-                <div class="total-amount" id="estimated-total">₹0.00</div>
+            <!-- List Tab -->
+            <div id="listTab" class="tab-content active">
+                <div class="total-cost">
+                    <h3>Estimated Total Cost</h3>
+                    <div class="total-amount" id="estimated-total">₹0.00</div>
+                </div>
+
+                <div class="card">
+                    <div class="add-item-form">
+                        <div class="input-group">
+                            <input type="text" id="itemInput" placeholder="Add an item (e.g., Apples)" autocomplete="off">
+                            <div class="form-grid">
+                                <input type="number" id="qtyInput" placeholder="Qty" min="1" value="1">
+                                <input type="number" id="priceInput" placeholder="Price (₹)" min="0" step="0.01">
+                            </div>
+                            <div class="form-grid">
+                                <select id="categorySelect">
+                                    <option value="uncategorized">Select Category</option>
+                                    <option value="fruits">Fruits & Vegetables</option>
+                                    <option value="dairy">Dairy & Eggs</option>
+                                    <option value="meat">Meat & Fish</option>
+                                    <option value="bakery">Bakery</option>
+                                    <option value="beverages">Beverages</option>
+                                    <option value="snacks">Snacks</option>
+                                    <option value="household">Household</option>
+                                    <option value="personal">Personal Care</option>
+                                    <option value="frozen">Frozen Foods</option>
+                                    <option value="other">Other</option>
+                                </select>
+                                <input type="date" id="dateInput">
+                            </div>
+                            <div>
+                                <label>
+                                    <input type="checkbox" id="urgentCheckbox"> Mark as urgent
+                                </label>
+                            </div>
+                        </div>
+                        <button id="addItemBtn">Add Item</button>
+                    </div>
+                </div>
+
+                <div class="search-bar">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="searchInput" placeholder="Search items...">
+                </div>
+
+                <div class="categories">
+                    <button class="category-btn active" data-category="all">All Items</button>
+                    <button class="category-btn" data-category="fruits">Fruits & Veg</button>
+                    <button class="category-btn" data-category="dairy">Dairy</button>
+                    <button class="category-btn" data-category="meat">Meat & Fish</button>
+                    <button class="category-btn" data-category="bakery">Bakery</button>
+                    <button class="category-btn" data-category="urgent">Urgent</button>
+                    <button class="category-btn" data-category="claimed">Claimed</button>
+                </div>
+
+                <div class="grocery-list">
+                    <div class="list-section">
+                        <h2 class="section-title">To Buy <span id="pending-count">(0)</span></h2>
+                        <div id="pending-items"></div>
+                    </div>
+
+                    <div class="list-section">
+                        <h2 class="section-title">Completed <span id="completed-count">(0)</span></h2>
+                        <div id="completed-items"></div>
+                    </div>
+                </div>
             </div>
 
-            <div class="card">
-                <div class="add-item-form">
-                    <div class="input-group">
-                        <input type="text" id="itemInput" placeholder="Add an item (e.g., Apples)" autocomplete="off">
-                        <div class="form-grid">
-                            <input type="number" id="qtyInput" placeholder="Qty" min="1" value="1">
-                            <input type="number" id="priceInput" placeholder="Price (₹)" min="0" step="0.01">
-                        </div>
-                        <div class="form-grid">
-                            <select id="categorySelect">
-                                <option value="uncategorized">Select Category</option>
-                                <option value="fruits">Fruits & Vegetables</option>
-                                <option value="dairy">Dairy & Eggs</option>
-                                <option value="meat">Meat & Fish</option>
-                                <option value="bakery">Bakery</option>
-                                <option value="beverages">Beverages</option>
-                                <option value="snacks">Snacks</option>
-                                <option value="household">Household</option>
-                                <option value="personal">Personal Care</option>
-                                <option value="frozen">Frozen Foods</option>
-                                <option value="other">Other</option>
-                            </select>
-                            <input type="date" id="dateInput">
-                        </div>
-                        <div>
-                            <label>
-                                <input type="checkbox" id="urgentCheckbox"> Mark as urgent
-                            </label>
+            <!-- Family Tab -->
+            <div id="familyTab" class="tab-content">
+                <div class="card">
+                    <h2 class="section-title">Family Members</h2>
+                    <div id="familyMembersList">
+                        <!-- Family members list will be inserted here -->
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="family-info-settings">
+                        <h3>Family Code</h3>
+                        <p>Share this code with family members to let them join your group</p>
+                        <div class="family-code-display">
+                            <div class="family-code" id="familyCodeDisplay">Loading...</div>
+                            <button class="copy-btn outline" id="copyFamilyCode">Copy</button>
                         </div>
                     </div>
-                    <button id="addItemBtn">Add Item</button>
                 </div>
             </div>
 
-            <div class="search-bar">
-                <span class="search-icon">🔍</span>
-                <input type="text" id="searchInput" placeholder="Search items...">
-            </div>
-
-            <div class="categories">
-                <button class="category-btn active" data-category="all">All Items</button>
-                <button class="category-btn" data-category="fruits">Fruits & Veg</button>
-                <button class="category-btn" data-category="dairy">Dairy</button>
-                <button class="category-btn" data-category="meat">Meat & Fish</button>
-                <button class="category-btn" data-category="bakery">Bakery</button>
-                <button class="category-btn" data-category="urgent">Urgent</button>
-                <button class="category-btn" data-category="claimed">Claimed</button>
-            </div>
-
-            <div class="grocery-list">
-                <div class="list-section">
-                    <h2 class="section-title">To Buy <span id="pending-count">(0)</span></h2>
-                    <div id="pending-items"></div>
-                </div>
-
-                <div class="list-section">
-                    <h2 class="section-title">Completed <span id="completed-count">(0)</span></h2>
-                    <div id="completed-items"></div>
+            <!-- Settings Tab -->
+            <div id="settingsTab" class="tab-content">
+                <div class="card">
+                    <div class="settings-content">
+                        <div class="user-info">
+                            <div class="user-avatar-large" id="userAvatarLarge">U</div>
+                            <div class="user-details">
+                                <h3 id="userNameDisplay">User Name</h3>
+                                <p id="userEmailDisplay">user@example.com</p>
+                            </div>
+                        </div>
+                        
+                        <div class="settings-section">
+                            <h3 class="settings-title">Account Settings</h3>
+                            <button class="full-width outline" id="changeNameBtn">Change Display Name</button>
+                        </div>
+                        
+                        <div class="settings-section">
+                            <h3 class="settings-title">Family Settings</h3>
+                            <button class="full-width outline" id="leaveFamilyBtn">Leave Family Group</button>
+                        </div>
+                        
+                        <div class="danger-zone">
+                            <h3>Danger Zone</h3>
+                            <button class="full-width danger" id="logoutBtn">Logout</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -930,7 +1099,7 @@ firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const auth = firebase.auth();
 
-        // DOM Elements
+      // DOM Elements
         const authScreen = document.getElementById('authScreen');
         const familySetupScreen = document.getElementById('familySetupScreen');
         const appScreen = document.getElementById('appScreen');
@@ -952,6 +1121,7 @@ firebase.initializeApp(firebaseConfig);
         const createFamilyBtn = document.getElementById('createFamilyBtn');
         const joinFamilyBtn = document.getElementById('joinFamilyBtn');
         const familyCodeInput = document.getElementById('familyCodeInput');
+        const logoutFromSetup = document.getElementById('logoutFromSetup');
         
         // Main app elements
         const itemInput = document.getElementById('itemInput');
@@ -971,7 +1141,21 @@ firebase.initializeApp(firebaseConfig);
         const pendingCountSpan = document.getElementById('pending-count');
         const completedCountSpan = document.getElementById('completed-count');
         const familyMembersContainer = document.getElementById('familyMembers');
+        const familyMembersList = document.getElementById('familyMembersList');
+        const familyCodeDisplay = document.getElementById('familyCodeDisplay');
+        const copyFamilyCodeBtn = document.getElementById('copyFamilyCode');
+        const userNameDisplay = document.getElementById('userNameDisplay');
+        const userEmailDisplay = document.getElementById('userEmailDisplay');
+        const userAvatarLarge = document.getElementById('userAvatarLarge');
+        const changeNameBtn = document.getElementById('changeNameBtn');
+        const leaveFamilyBtn = document.getElementById('leaveFamilyBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const headerLogout = document.getElementById('headerLogout');
         const toast = document.getElementById('toast');
+        
+        // Tab elements
+        const tabContents = document.querySelectorAll('.tab-content');
+        const navButtons = document.querySelectorAll('.nav-btn');
 
         // State variables
         let currentUser = null;
@@ -1018,6 +1202,7 @@ firebase.initializeApp(firebaseConfig);
             // Family setup
             createFamilyBtn.addEventListener('click', createFamily);
             joinFamilyBtn.addEventListener('click', joinFamily);
+            logoutFromSetup.addEventListener('click', logoutUser);
             
             // Main app
             addItemBtn.addEventListener('click', addItem);
@@ -1038,6 +1223,43 @@ firebase.initializeApp(firebaseConfig);
                     renderItems();
                 });
             });
+            
+            // Navigation tabs
+            navButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const tab = btn.dataset.tab;
+                    switchTab(tab);
+                });
+            });
+            
+            // Family tab
+            copyFamilyCodeBtn.addEventListener('click', copyFamilyCode);
+            
+            // Settings tab
+            changeNameBtn.addEventListener('click', changeUserName);
+            leaveFamilyBtn.addEventListener('click', leaveFamily);
+            logoutBtn.addEventListener('click', logoutUser);
+            headerLogout.addEventListener('click', logoutUser);
+        }
+
+        // Switch between tabs
+        function switchTab(tabName) {
+            // Update nav buttons
+            navButtons.forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.tab === tabName);
+            });
+            
+            // Update tab contents
+            tabContents.forEach(tab => {
+                tab.classList.toggle('active', tab.id === `${tabName}Tab`);
+            });
+            
+            // Load tab-specific data
+            if (tabName === 'family') {
+                loadFamilyTab();
+            } else if (tabName === 'settings') {
+                loadSettingsTab();
+            }
         }
 
         // Check authentication state
@@ -1066,6 +1288,7 @@ firebase.initializeApp(firebaseConfig);
                 })
                 .catch((error) => {
                     console.error("Error getting user document:", error);
+                    showToast('Error loading user data');
                     showScreen('familySetup');
                 });
         }
@@ -1144,6 +1367,7 @@ firebase.initializeApp(firebaseConfig);
             })
             .catch((error) => {
                 showToast('Error creating family: ' + error.message);
+                console.error('Error creating family:', error);
             });
         }
 
@@ -1182,6 +1406,7 @@ firebase.initializeApp(firebaseConfig);
                 })
                 .catch((error) => {
                     showToast('Error joining family: ' + error.message);
+                    console.error('Error joining family:', error);
                 });
         }
 
@@ -1203,6 +1428,9 @@ firebase.initializeApp(firebaseConfig);
                     });
                     renderItems();
                     updateStats();
+                }, (error) => {
+                    console.error('Error listening to items:', error);
+                    showToast('Error loading items');
                 });
             
             // Set up real-time listener for family members
@@ -1213,7 +1441,11 @@ firebase.initializeApp(firebaseConfig);
                     if (doc.exists) {
                         const familyData = doc.data();
                         loadFamilyMembers(familyData.members);
+                        familyCodeDisplay.textContent = currentFamily;
                     }
+                }, (error) => {
+                    console.error('Error listening to family:', error);
+                    showToast('Error loading family data');
                 });
         }
 
@@ -1240,8 +1472,133 @@ firebase.initializeApp(firebaseConfig);
                             avatar.title = member.name || 'Unknown';
                             familyMembersContainer.appendChild(avatar);
                         }
+                    })
+                    .catch(error => {
+                        console.error('Error loading member:', error);
                     });
             });
+        }
+
+        // Load family tab
+        function loadFamilyTab() {
+            familyMembersList.innerHTML = '';
+            
+            if (familyMembers.length === 0) {
+                familyMembersList.innerHTML = '<p>Loading family members...</p>';
+                return;
+            }
+            
+            familyMembers.forEach(member => {
+                const memberElement = document.createElement('div');
+                memberElement.className = 'user-info';
+                memberElement.innerHTML = `
+                    <div class="user-avatar-large">${member.name ? member.name.charAt(0).toUpperCase() : '?'}</div>
+                    <div class="user-details">
+                        <h3>${member.name || 'Unknown User'}</h3>
+                        <p>${member.email || 'No email'}</p>
+                    </div>
+                `;
+                familyMembersList.appendChild(memberElement);
+            });
+        }
+
+        // Load settings tab
+        function loadSettingsTab() {
+            // Update user info
+            db.collection('users').doc(currentUser.uid).get()
+                .then((doc) => {
+                    if (doc.exists) {
+                        const userData = doc.data();
+                        userNameDisplay.textContent = userData.name || 'Unknown User';
+                        userEmailDisplay.textContent = currentUser.email;
+                        userAvatarLarge.textContent = userData.name ? userData.name.charAt(0).toUpperCase() : 'U';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading user data:', error);
+                });
+        }
+
+        // Copy family code to clipboard
+        function copyFamilyCode() {
+            navigator.clipboard.writeText(currentFamily)
+                .then(() => {
+                    showToast('Family code copied to clipboard!');
+                })
+                .catch(() => {
+                    // Fallback for older browsers
+                    const textArea = document.createElement('textarea');
+                    textArea.value = currentFamily;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    showToast('Family code copied!');
+                });
+        }
+
+        // Change user's display name
+        function changeUserName() {
+            const newName = prompt('Enter your new display name:');
+            if (newName && newName.trim() !== '') {
+                db.collection('users').doc(currentUser.uid).update({
+                    name: newName.trim()
+                })
+                .then(() => {
+                    showToast('Name updated successfully!');
+                    loadSettingsTab();
+                    loadFamilyData(); // Reload to update avatars
+                })
+                .catch(error => {
+                    showToast('Error updating name: ' + error.message);
+                });
+            }
+        }
+
+        // Leave family group
+        function leaveFamily() {
+            if (confirm('Are you sure you want to leave this family group? You will need a family code to rejoin.')) {
+                // Remove user from family members
+                db.collection('families').doc(currentFamily).update({
+                    members: firebase.firestore.FieldValue.arrayRemove(currentUser.uid)
+                })
+                .then(() => {
+                    // Remove family ID from user document
+                    return db.collection('users').doc(currentUser.uid).update({
+                        familyId: null
+                    });
+                })
+                .then(() => {
+                    currentFamily = null;
+                    showScreen('familySetup');
+                    showToast('You have left the family group');
+                })
+                .catch(error => {
+                    showToast('Error leaving family: ' + error.message);
+                });
+            }
+        }
+
+        // Logout user
+        function logoutUser() {
+            if (confirm('Are you sure you want to logout?')) {
+                // Unsubscribe from listeners
+                if (itemsUnsubscribe) itemsUnsubscribe();
+                if (familyUnsubscribe) familyUnsubscribe();
+                
+                auth.signOut()
+                    .then(() => {
+                        currentUser = null;
+                        currentFamily = null;
+                        groceryItems = [];
+                        familyMembers = [];
+                        showScreen('auth');
+                        showToast('Logged out successfully');
+                    })
+                    .catch(error => {
+                        showToast('Error logging out: ' + error.message);
+                    });
+            }
         }
 
         // Add a new item to the list
@@ -1290,6 +1647,7 @@ firebase.initializeApp(firebaseConfig);
             })
             .catch((error) => {
                 showToast('Error adding item: ' + error.message);
+                console.error('Error adding item:', error);
             });
         }
 
@@ -1419,18 +1777,74 @@ firebase.initializeApp(firebaseConfig);
                     deleteItem(id);
                 });
             });
-            
-            // Update counts
-            pendingCountSpan.textContent = `(${pendingItems.length})`;
-            completedCountSpan.textContent = `(${completedItems.length})`;
         }
 
-        // Create HTML for a grocery item
+        // Create HTML for an item
         function createItemHTML(item) {
-            const categoryLabels = {
-                'uncategorized': 'Uncategorized',
-                'fruits': 'Fruits & Veg',
-                'dairy': 'Dairy',
+            const isClaimed = item.claimedBy;
+            const isClaimedByCurrentUser = isClaimed && item.claimedBy === currentUser.uid;
+            
+            return `
+                <div class="grocery-item ${item.completed ? 'completed' : ''} ${item.isUrgent ? 'urgent' : ''}" data-id="${item.id}">
+                    <div class="item-main">
+                        <div class="item-checkbox">
+                            <input type="checkbox" ${item.completed ? 'checked' : ''}>
+                        </div>
+                        <div class="item-details">
+                            <div class="item-name">${item.name}</div>
+                            <div class="item-meta">
+                                <span class="item-qty">Qty: ${item.quantity}</span>
+                                ${item.price > 0 ? `<span class="item-price">₹${item.price.toFixed(2)}</span>` : ''}
+                                ${item.dateNeeded ? `<span class="item-date">${formatDate(item.dateNeeded)}</span>` : ''}
+                            </div>
+                            <div class="item-info">
+                                <span class="item-category">${getCategoryName(item.category)}</span>
+                                ${item.isUrgent ? '<span class="urgent-badge">Urgent</span>' : ''}
+                                ${isClaimed ? `<span class="claimed-badge">Claimed by ${item.claimedByName}</span>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="item-actions">
+                        ${!item.completed ? (
+                            isClaimed ? (
+                                isClaimedByCurrentUser ? 
+                                '<button class="unclaim-btn" title="Unclaim item">❌</button>' :
+                                ''
+                            ) : (
+                                '<button class="claim-btn" title="Claim this item">🛒</button>'
+                            )
+                        ) : ''}
+                        <button class="delete-btn" title="Delete item">🗑️</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Update statistics
+        function updateStats() {
+            const totalItems = groceryItems.length;
+            const completedItemsCount = groceryItems.filter(item => item.completed).length;
+            const totalCost = groceryItems
+                .filter(item => !item.completed)
+                .reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            
+            totalItemsSpan.textContent = totalItems;
+            completedItemsSpan.textContent = completedItemsCount;
+            estimatedTotalSpan.textContent = `₹${totalCost.toFixed(2)}`;
+            pendingCountSpan.textContent = `(${totalItems - completedItemsCount})`;
+            completedCountSpan.textContent = `(${completedItemsCount})`;
+        }
+
+        // Helper functions
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        }
+
+        function getCategoryName(category) {
+            const categories = {
+                'fruits': 'Fruits & Vegetables',
+                'dairy': 'Dairy & Eggs',
                 'meat': 'Meat & Fish',
                 'bakery': 'Bakery',
                 'beverages': 'Beverages',
@@ -1438,105 +1852,28 @@ firebase.initializeApp(firebaseConfig);
                 'household': 'Household',
                 'personal': 'Personal Care',
                 'frozen': 'Frozen Foods',
-                'other': 'Other'
+                'other': 'Other',
+                'uncategorized': 'Uncategorized'
             };
-            
-            const totalPrice = (item.quantity * item.price).toFixed(2);
-            const formattedDate = formatDate(item.dateNeeded);
-            const isUrgent = item.isUrgent && !item.completed;
-            const isClaimed = item.claimedBy && !item.completed;
-            const isAddedByCurrentUser = item.addedBy === currentUser.uid;
-            const isClaimedByCurrentUser = item.claimedBy === currentUser.uid;
-            
-            return `
-                <div class="grocery-item ${item.completed ? 'checked' : ''} ${isUrgent ? 'urgent' : ''} ${isClaimed ? 'claimed' : ''}" data-id="${item.id}">
-                    <div class="checkbox item-checkbox ${item.completed ? 'checked' : ''}">
-                        ${item.completed ? '✓' : ''}
-                    </div>
-                    <div class="item-details">
-                        <div class="item-name">
-                            ${item.name} 
-                            ${isUrgent ? '<span class="urgent-badge">URGENT</span>' : ''}
-                            ${isClaimed ? `<span class="claimed-badge">CLAIMED BY ${item.claimedByName}</span>` : ''}
-                        </div>
-                        <div class="item-meta">
-                            <span class="item-category">${categoryLabels[item.category]}</span>
-                            <span class="item-qty">📦 ${item.quantity}</span>
-                            ${item.price > 0 ? `<span class="item-price">₹${item.price} × ${item.quantity} = ₹${totalPrice}</span>` : ''}
-                            <span class="item-date">📅 ${formattedDate}</span>
-                            <span class="item-added-by">
-                                <div class="user-avatar">${item.addedByName ? item.addedByName.charAt(0).toUpperCase() : '?'}</div>
-                                Added by ${item.addedByName}
-                            </span>
-                        </div>
-                    </div>
-                    <div class="item-actions">
-                        ${!item.completed ? (
-                            isClaimed ? (
-                                isClaimedByCurrentUser ? 
-                                '<button class="action-btn outline unclaim-btn">Unclaim</button>' :
-                                '<button class="action-btn outline" disabled>Claimed</button>'
-                            ) : (
-                                '<button class="action-btn secondary claim-btn">I\'ll Buy</button>'
-                            )
-                        ) : ''}
-                        ${isAddedByCurrentUser || isClaimedByCurrentUser ? 
-                            '<button class="action-btn danger delete-btn">Delete</button>' : ''}
-                    </div>
-                </div>
-            `;
+            return categories[category] || category;
         }
 
-        // Format date for display
-        function formatDate(dateString) {
-            if (!dateString) return 'No date';
-            
-            const date = new Date(dateString);
-            const now = new Date();
-            const diffTime = Math.abs(date - now);
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            
-            if (diffDays === 0) return 'Today';
-            if (diffDays === 1) return date > now ? 'Tomorrow' : 'Yesterday';
-            if (diffDays < 7) return `${diffDays} days`;
-            
-            return date.toLocaleDateString();
-        }
-
-        // Update statistics
-        function updateStats() {
-            const total = groceryItems.length;
-            const completed = groceryItems.filter(item => item.completed).length;
-            
-            // Calculate total cost of pending items
-            const totalCost = groceryItems
-                .filter(item => !item.completed)
-                .reduce((sum, item) => sum + (item.quantity * item.price), 0);
-            
-            totalItemsSpan.textContent = total;
-            completedItemsSpan.textContent = completed;
-            estimatedTotalSpan.textContent = `₹${totalCost.toFixed(2)}`;
-        }
-
-        // Show toast notification
-        function showToast(message) {
-            toast.textContent = message;
-            toast.classList.add('show');
-            
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 3000);
-        }
-
-        // Show specific screen
         function showScreen(screen) {
             authScreen.style.display = screen === 'auth' ? 'block' : 'none';
             familySetupScreen.style.display = screen === 'familySetup' ? 'block' : 'none';
             appScreen.style.display = screen === 'app' ? 'block' : 'none';
         }
 
-        // Initialize the app when DOM is loaded
-        document.addEventListener('DOMContentLoaded', init);
+        function showToast(message) {
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Initialize the app
+        init();
     </script>
 </body>
 </html>
