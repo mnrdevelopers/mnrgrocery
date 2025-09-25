@@ -1729,15 +1729,20 @@ function createFamily() {
         }
 
         // Render items based on current filter and search
-        function renderItems() {
-            // Filter items based on category and search
-            let filteredItems = groceryItems.filter(item => {
-                const matchesCategory = currentFilter === 'all' || 
-                                      (currentFilter === 'urgent' ? item.isUrgent : 
-                                      (currentFilter === 'claimed' ? item.claimedBy : item.category === currentFilter));
-                const matchesSearch = item.name.toLowerCase().includes(currentSearch);
-                return matchesCategory && matchesSearch;
-            });
+       function renderItems() {
+    // Sort items by createdAt locally (newest first)
+    const sortedItems = [...groceryItems].sort((a, b) => {
+        return b.createdAt?.toDate() - a.createdAt?.toDate();
+    });
+    
+    // Filter items based on category and search
+    let filteredItems = sortedItems.filter(item => {
+        const matchesCategory = currentFilter === 'all' || 
+                              (currentFilter === 'urgent' ? item.isUrgent : 
+                              (currentFilter === 'claimed' ? item.claimedBy : item.category === currentFilter));
+        const matchesSearch = item.name.toLowerCase().includes(currentSearch);
+        return matchesCategory && matchesSearch;
+    });
             
             // Separate completed and pending items
             const pendingItems = filteredItems.filter(item => !item.completed);
