@@ -1341,35 +1341,54 @@ firebase.initializeApp(firebaseConfig);
                 });
         }
 
-        // Create a new family
-        function createFamily() {
-            // Generate a random family code
-            const familyCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-            
-            // Create family document
-            db.collection('families').doc(familyCode).set({
-                name: `${currentUser.displayName || 'My'}'s Family`,
-                createdBy: currentUser.uid,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                members: [currentUser.uid]
-            })
-            .then(() => {
-                // Update user document with family ID
-                return db.collection('users').doc(currentUser.uid).update({
-                    familyId: familyCode
-                });
-            })
-            .then(() => {
-                currentFamily = familyCode;
-                showScreen('app');
-                loadFamilyData();
-                showToast(`Family created! Code: ${familyCode}`);
-            })
-            .catch((error) => {
-                showToast('Error creating family: ' + error.message);
-                console.error('Error creating family:', error);
-            });
+      // Create a new family
+function createFamily() {
+    // Generate a random family code
+    const familyCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+    
+    // Get user's display name or use default
+    const userName = currentUser.displayName || signupName?.value || 'My';
+    
+    // Create family document with simpler structure first
+    const familyData = {
+        name: `${userName}'s Family`,
+        createdBy: currentUser.uid,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        members: [currentUser.uid]
+    };
+    
+    console.log('Creating family with data:', familyData);
+    
+    // First create the family document
+    db.collection('families').doc(familyCode).set(familyData)
+    .then(() => {
+        console.log('Family document created successfully');
+        
+        // Then update user document with family ID
+        return db.collection('users').doc(currentUser.uid).set({
+            name: signupName?.value || currentUser.displayName || 'User',
+            email: currentUser.email,
+            familyId: familyCode,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+    })
+    .then(() => {
+        console.log('User document updated successfully');
+        currentFamily = familyCode;
+        showScreen('app');
+        loadFamilyData();
+        showToast(`Family created! Code: ${familyCode}`);
+    })
+    .catch((error) => {
+        console.error('Error creating family:', error);
+        showToast('Error creating family: ' + error.message);
+        
+        // If family creation fails, show more detailed error
+        if (error.code === 'permission-denied') {
+            showToast('Permission denied. Check Firestore rules.');
         }
+    });
+}
 
         // Join an existing family
         function joinFamily() {
