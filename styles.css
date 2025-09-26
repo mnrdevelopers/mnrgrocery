@@ -51,6 +51,67 @@ header {
     align-items: center;
 }
 
+/* Add these new styles to your existing styles.css */
+
+/* Auth Page Specific Styles */
+.auth-page {
+    background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.auth-background {
+    width: 100%;
+    max-width: 400px;
+}
+
+.auth-card {
+    background: white;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.auth-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.app-logo {
+    font-size: 3rem;
+    margin-bottom: 10px;
+}
+
+.auth-header h1 {
+    font-size: 1.8rem;
+    margin-bottom: 5px;
+    color: #1F2937;
+}
+
+.auth-header p {
+    color: #6B7280;
+    font-size: 0.9rem;
+}
+
+/* App Page Specific Styles */
+.app-page {
+    background: #F9FAFB;
+    min-height: 100vh;
+}
+
+.app-loading {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #3B82F
+
 .app-title {
     display: flex;
     align-items: center;
