@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FamilyGrocer - Smart Grocery List</title>
+    <meta name="theme-color" content="#3B82F6">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛒</text></svg>">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="app-page">
+    <!-- Loading Screen for App -->
+    <div id="appLoading" class="app-loading">
+        <div class="loading-content">
+            <div class="loading-spinner-large"></div>
+            <h2>Loading Your Grocery List</h2>
+            <p>Preparing your shopping experience...</p>
+        </div>
+    </div>
+
+    <!-- Main App Container -->
+    <div id="appContainer" class="app-container" style="display: none;">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <div class="header-left">
+                    <button class="menu-btn" id="menuBtn">
+                        <span>☰</span>
+                    </button>
+                    <div class="app-title">
+                        <h1>🛒 FamilyGrocer</h1>
+                        <div class="sync-status">
+                            <div class="online-dot"></div>
+                            <span>Live Sync</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="header-right">
+                    <div class="family-info">
+                        <div class="stats">
+                            <div class="stat-item">
+                                <span class="stat-value" id="totalItems">0</span>
+                                <span class="stat-label">Items</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value" id="completedItems">0</span>
+                                <span class="stat-label">Done</span>
+                            </div>
+                        </div>
+                        <div class="family-members" id="familyMembers"></div>
+                    </div>
+                    <div class="user-menu">
+                        <button class="user-avatar-btn" id="userMenuBtn">
+                            <span id="userAvatar">👤</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Sidebar Menu -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="user-info">
+                    <div class="user-avatar-large" id="sidebarUserAvatar">👤</div>
+                    <div class="user-details">
+                        <h3 id="sidebarUserName">User Name</h3>
+                        <p id="sidebarUserEmail">user@example.com</p>
+                    </div>
+                </div>
+                <button class="close-sidebar" id="closeSidebar">×</button>
+            </div>
+
+            <nav class="sidebar-nav">
+                <button class="nav-item active" data-tab="list">
+                    <span class="nav-icon">🛒</span>
+                    <span class="nav-text">Grocery List</span>
+                </button>
+                <button class="nav-item" data-tab="analytics">
+                    <span class="nav-icon">📊</span>
+                    <span class="nav-text">Analytics</span>
+                </button>
+                <button class="nav-item" data-tab="family">
+                    <span class="nav-icon">👨‍👩‍👧‍👦</span>
+                    <span class="nav-text">Family</span>
+                </button>
+                <button class="nav-item" data-tab="settings">
+                    <span class="nav-icon">⚙️</span>
+                    <span class="nav-text">Settings</span>
+                </button>
+            </nav>
+
+            <div class="sidebar-footer">
+                <button class="nav-item logout-btn" id="sidebarLogout">
+                    <span class="nav-icon">🚪</span>
+                    <span class="nav-text">Logout</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- List Tab -->
+            <div id="listTab" class="tab-content active">
+                <!-- Content will be loaded by app.js -->
+            </div>
+
+            <!-- Analytics Tab -->
+            <div id="analyticsTab" class="tab-content">
+                <!-- Content will be loaded by app.js -->
+            </div>
+
+            <!-- Family Tab -->
+            <div id="familyTab" class="tab-content">
+                <!-- Content will be loaded by app.js -->
+            </div>
+
+            <!-- Settings Tab -->
+            <div id="settingsTab" class="tab-content">
+                <!-- Content will be loaded by app.js -->
+            </div>
+        </main>
+
+        <!-- Bottom Navigation for Mobile -->
+        <nav class="bottom-nav">
+            <button class="nav-btn active" data-tab="list">
+                <span class="nav-icon">🛒</span>
+                <span class="nav-text">List</span>
+            </button>
+            <button class="nav-btn" data-tab="analytics">
+                <span class="nav-icon">📊</span>
+                <span class="nav-text">Stats</span>
+            </button>
+            <button class="nav-btn" data-tab="family">
+                <span class="nav-icon">👨‍👩‍👧‍👦</span>
+                <span class="nav-text">Family</span>
+            </button>
+            <button class="nav-btn" data-tab="settings">
+                <span class="nav-icon">⚙️</span>
+                <span class="nav-text">Settings</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    
+    <!-- Scripts -->
+    <script src="firebase-config.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
