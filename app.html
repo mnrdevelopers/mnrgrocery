@@ -500,5 +500,68 @@
     <script src="firebase-config.js"></script>
     <script src="utils.js"></script>
     <script src="app.js"></script>
+    <script>
+        // Add these methods to your GroceryApp class
+
+// Enhanced CRUD methods
+async editItem(itemId) {
+    const item = this.groceryItems.find(item => item.id === itemId);
+    if (!item) return;
+
+    // Create edit modal or use prompt for simplicity
+    const newName = prompt('Edit item name:', item.name);
+    if (newName && newName.trim() !== '') {
+        try {
+            await db.collection('items').doc(itemId).update({
+                name: newName.trim(),
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            Utils.showToast('Item updated successfully!');
+        } catch (error) {
+            Utils.showToast('Error updating item: ' + error.message);
+        }
+    }
+}
+
+async duplicateItem(itemId) {
+    const item = this.groceryItems.find(item => item.id === itemId);
+    if (!item) return;
+
+    const duplicateData = {
+        ...item,
+        completed: false,
+        claimedBy: null,
+        claimedByName: null,
+        claimedAt: null,
+        price: null,
+        purchaseDate: null,
+        store: null,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    
+    delete duplicateData.id;
+
+    try {
+        await db.collection('items').add(duplicateData);
+        Utils.showToast('Item duplicated successfully!');
+    } catch (error) {
+        Utils.showToast('Error duplicating item: ' + error.message);
+    }
+}
+
+// Initialize Lottie animations
+initLottieAnimations() {
+    // Empty purchases animation
+    if (document.getElementById('emptyPurchasesLottie')) {
+        lottie.loadAnimation({
+            container: document.getElementById('emptyPurchasesLottie'),
+            renderer: 'svg',
+            loop: true,
+            autoplay: true,
+            path: 'https://assets1.lottiefiles.com/packages/lf20_gns0r9d7.json' // Shopping animation
+        });
+    }
+}
+    </script>
 </body>
 </html>
