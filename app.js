@@ -217,6 +217,73 @@ async createUserDocument() {
         }
     }
 
+    // Add to setupEventListeners() in app.js
+const notificationSettingsBtn = document.getElementById('notificationSettingsBtn');
+if (notificationSettingsBtn) {
+    notificationSettingsBtn.addEventListener('click', () => this.showNotificationSettings());
+}
+
+// Add new method to GroceryApp class
+showNotificationSettings() {
+    if (!notificationManager) return;
+    
+    const settings = notificationManager.getSettings();
+    
+    // Update switch states
+    document.getElementById('enableNotifications').checked = settings.notifications;
+    document.getElementById('enableSound').checked = settings.sound;
+    document.getElementById('notifyItemAdded').checked = settings.itemAdded;
+    document.getElementById('notifyItemCompleted').checked = settings.itemCompleted;
+    document.getElementById('notifyPriceAdded').checked = settings.priceAdded;
+    document.getElementById('notifyFamilyActivity').checked = settings.familyActivity;
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('notificationSettingsModal'));
+    modal.show();
+    
+    // Add event listeners for the modal
+    this.setupNotificationModalEvents();
+}
+
+setupNotificationModalEvents() {
+    const testBtn = document.getElementById('testNotificationBtn');
+    const saveBtn = document.getElementById('saveNotificationSettings');
+    
+    if (testBtn) {
+        testBtn.addEventListener('click', () => {
+            if (notificationManager) {
+                notificationManager.testNotification();
+            }
+        });
+    }
+    
+    if (saveBtn) {
+        saveBtn.addEventListener('click', () => {
+            this.saveNotificationSettings();
+        });
+    }
+}
+
+saveNotificationSettings() {
+    if (!notificationManager) return;
+    
+    const newSettings = {
+        notifications: document.getElementById('enableNotifications').checked,
+        sound: document.getElementById('enableSound').checked,
+        itemAdded: document.getElementById('notifyItemAdded').checked,
+        itemCompleted: document.getElementById('notifyItemCompleted').checked,
+        priceAdded: document.getElementById('notifyPriceAdded').checked,
+        familyActivity: document.getElementById('notifyFamilyActivity').checked
+    };
+    
+    notificationManager.updateSettings(newSettings);
+    Utils.showToast('Notification settings saved!');
+    
+    // Close modal
+    const modal = bootstrap.Modal.getInstance(document.getElementById('notificationSettingsModal'));
+    modal.hide();
+}
+
 async createFamily() {
     const familyCode = Utils.generateFamilyCode();
     
