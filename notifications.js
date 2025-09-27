@@ -1,10 +1,16 @@
-// notifications.js - Push Notification Manager
+// notifications.js - Fixed version
 class NotificationManager {
     constructor() {
-        this.isSupported = 'Notification' in window;
+        this.isSupported = this.checkSupport();
         this.permission = null;
         this.currentToken = null;
         this.init();
+    }
+
+    checkSupport() {
+        return 'Notification' in window && 
+               'serviceWorker' in navigator && 
+               'PushManager' in window;
     }
 
     async init() {
@@ -14,105 +20,95 @@ class NotificationManager {
         }
 
         this.permission = Notification.permission;
-        await this.checkFirebaseReady();
-        this.setupEventListeners();
+        await this.setupServiceWorker();
         
-        if (this.permission === 'default') {
-            await this.requestPermission();
-        } else if (this.permission === 'granted') {
+        if (this.permission === 'granted') {
             await this.getToken();
         }
     }
 
-    async checkFirebaseReady() {
-        return new Promise((resolve) => {
-            if (typeof firebase !== 'undefined' && firebase.messaging) {
-                resolve();
-            } else {
-                const checkInterval = setInterval(() => {
-                    if (typeof firebase !== 'undefined' && firebase.messaging) {
-                        clearInterval(checkInterval);
-                        resolve();
-                    }
-                }, 100);
-            }
-        });
-    }
-
-    setupEventListeners() {
-        // Listen for foreground messages
-        if (messaging) {
-            messaging.onMessage((payload) => {
-                console.log('Foreground message received:', payload);
-                this.showLocalNotification(payload);
+    async setupServiceWorker() {
+        try {
+            // Use a more specific service worker scope
+            const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
+                scope: '/'
             });
-        }
-
-        // Listen for token refresh
-        if (messaging) {
-            messaging.onTokenRefresh(() => {
-                this.getToken();
-            });
+            console.log('Service Worker registered:', registration);
+            
+            // Wait for service worker to be ready
+            await navigator.serviceWorker.ready;
+            
+        } catch (error) {
+            console.error('Service Worker registration failed:', error);
         }
     }
 
     async requestPermission() {
-        if (!this.isSupported) return false;
+        if (!this.isSupported) {
+            Utils.showToast('Notifications not supported in your browser');
+            return false;
+        }
 
         try {
+            // Request browser permission first
             const permission = await Notification.requestPermission();
             this.permission = permission;
             
             if (permission === 'granted') {
-                await this.getToken();
-                Utils.showToast('Notifications enabled!');
-                return true;
+                // Then request Firebase permission
+                await messaging.requestPermission();
+                const token = await this.getToken();
+                
+                if (token) {
+                    Utils.showToast('Notifications enabled!');
+                    return true;
+                } else {
+                    Utils.showToast('Failed to enable notifications');
+                    return false;
+                }
             } else {
                 Utils.showToast('Notifications blocked');
                 return false;
             }
         } catch (error) {
             console.error('Error requesting notification permission:', error);
+            
+            if (error.code === 'messaging/permission-blocked') {
+                Utils.showToast('Notifications are blocked. Please enable them in browser settings.');
+            }
+            
             return false;
         }
     }
 
     async getToken() {
-        if (!messaging || this.permission !== 'granted') return null;
+        if (!this.isSupported || !messaging) {
+            console.warn('Messaging not available');
+            return null;
+        }
 
         try {
-            // Request notification permission for Firebase
-            await messaging.requestPermission();
+            // Get the current token
+            const currentToken = await messaging.getToken();
             
-            // Get FCM token
-            const token = await messaging.getToken({
-                vapidKey: 'BIouHaUkC-P9N291LKU4ieL8NMMDYDzIovWnXYAs2XyaqxOHS8YFWAcXBBSBmU-5rYTyjHDhR5UqWGS0BoWvRD4' // You can generate this in Firebase Console
-            });
-
-            if (token) {
-                this.currentToken = token;
-                await this.saveTokenToFirestore(token);
-                console.log('FCM Token:', token);
-                return token;
+            if (currentToken) {
+                this.currentToken = currentToken;
+                await this.saveTokenToFirestore(currentToken);
+                console.log('FCM Token obtained:', currentToken);
+                return currentToken;
             } else {
-                console.warn('No registration token available');
+                // Need to generate a new token
+                console.log('No registration token available. Requesting permission...');
                 return null;
             }
         } catch (error) {
             console.error('Error getting FCM token:', error);
-            
-            if (error.code === 'messaging/permission-default') {
-                console.log('User dismissed permission request');
-            } else if (error.code === 'messaging/permission-blocked') {
-                console.log('User blocked notifications');
-            }
-            
             return null;
         }
     }
 
     async saveTokenToFirestore(token) {
-        if (!app.currentUser) return;
+        if (!app || !app.currentUser) return;
 
         try {
             await db.collection('users').doc(app.currentUser.uid).update({
@@ -120,192 +116,141 @@ class NotificationManager {
                 notificationEnabled: true,
                 tokenUpdatedAt: firebase.firestore.FieldValue.serverTimestamp()
             });
+            console.log('Token saved to Firestore');
         } catch (error) {
-            console.error('Error saving FCM token:', error);
+            console.error('Error saving FCM token to Firestore:', error);
         }
     }
 
     async removeTokenFromFirestore() {
-        if (!app.currentUser) return;
+        if (!app || !app.currentUser) return;
 
         try {
             await db.collection('users').doc(app.currentUser.uid).update({
                 fcmToken: null,
                 notificationEnabled: false
             });
+            console.log('Token removed from Firestore');
         } catch (error) {
             console.error('Error removing FCM token:', error);
         }
     }
 
+    // Improved local notification method
     showLocalNotification(payload) {
-        if (!this.isSupported || this.permission !== 'granted') return;
+        if (!this.isSupported || this.permission !== 'granted') {
+            console.warn('Cannot show notification: permission not granted');
+            return;
+        }
 
-        const { title, body, icon } = payload.notification;
+        const { title, body, icon } = payload.notification || payload;
         
-        const notification = new Notification(title, {
+        const notificationOptions = {
             body: body,
             icon: icon || '/icons/icon-192x192.png',
             badge: '/icons/badge-72x72.png',
             tag: 'familygrocer',
-            requireInteraction: true
-        });
-
-        notification.onclick = () => {
-            window.focus();
-            notification.close();
-            
-            // Handle notification click (e.g., navigate to specific tab)
-            if (payload.data && payload.data.tab) {
-                app.switchTab(payload.data.tab);
-            }
+            requireInteraction: false,
+            actions: [
+                {
+                    action: 'view',
+                    title: 'View List'
+                }
+            ]
         };
 
-        // Auto-close after 5 seconds
-        setTimeout(() => {
-            notification.close();
-        }, 5000);
+        // Show notification
+        if ('showNotification' in ServiceWorkerRegistration.prototype) {
+            navigator.serviceWorker.ready.then(registration => {
+                registration.showNotification(title, notificationOptions);
+            });
+        } else {
+            // Fallback for browsers that don't support service worker notifications
+            const notification = new Notification(title, notificationOptions);
+            this.setupNotificationClick(notification, payload.data);
+        }
     }
 
-    async sendNotificationToFamily(memberIds, notificationData) {
-        if (!app.currentFamily) return;
+    setupNotificationClick(notification, data) {
+        notification.onclick = (event) => {
+            event.preventDefault();
+            window.focus();
+            
+            if (data && data.tab) {
+                // Navigate to the specified tab
+                if (app && app.switchTab) {
+                    app.switchTab(data.tab);
+                }
+            }
+            
+            notification.close();
+        };
+    }
+
+    // Test notification method
+    async testNotification() {
+        if (!this.isSupported) {
+            Utils.showToast('Notifications not supported in your browser');
+            return;
+        }
+
+        if (this.permission !== 'granted') {
+            const enabled = await this.requestPermission();
+            if (!enabled) return;
+        }
+
+        this.showLocalNotification({
+            notification: {
+                title: '🔔 Test Notification',
+                body: 'This is a test notification from FamilyGrocer!',
+                icon: '/icons/icon-192x192.png'
+            },
+            data: {
+                tab: 'settings',
+                type: 'test'
+            }
+        });
+    }
+
+    // Check if notifications are enabled
+    async checkNotificationStatus() {
+        if (!app || !app.currentUser) return false;
 
         try {
-            // Get FCM tokens of family members
-            const usersSnapshot = await db.collection('users')
-                .where('familyId', '==', app.currentFamily)
-                .where('notificationEnabled', '==', true)
-                .get();
-
-            const tokens = [];
-            usersSnapshot.forEach(doc => {
-                const userData = doc.data();
-                if (userData.fcmToken && memberIds.includes(doc.id)) {
-                    tokens.push(userData.fcmToken);
-                }
-            });
-
-            if (tokens.length === 0) return;
-
-            // Send notification via Cloud Functions (you'll need to set this up)
-            await this.sendViaCloudFunctions(tokens, notificationData);
-            
+            const userDoc = await db.collection('users').doc(app.currentUser.uid).get();
+            if (userDoc.exists) {
+                const userData = userDoc.data();
+                return userData.notificationEnabled === true && this.permission === 'granted';
+            }
+            return false;
         } catch (error) {
-            console.error('Error sending notification to family:', error);
+            console.error('Error checking notification status:', error);
+            return false;
         }
     }
 
-    async sendViaCloudFunctions(tokens, notificationData) {
-        // This would call your Cloud Function
-        // You need to set up a Cloud Function to send notifications
-        console.log('Would send notification to tokens:', tokens, 'with data:', notificationData);
-        
-        // For now, we'll just show a local notification
-        this.showLocalNotification({
-            notification: notificationData
-        });
-    }
-
-    // Notification types for different events
-    async notifyItemAdded(item, addedByName) {
-        const notificationData = {
-            title: '🛒 New Item Added',
-            body: `${addedByName} added ${item.name} to the list`,
-            data: { tab: 'list' }
-        };
-
-        if (app.currentFamily) {
-            // Get all family members except the current user
-            const familyDoc = await db.collection('families').doc(app.currentFamily).get();
-            const memberIds = familyDoc.data().members.filter(id => id !== app.currentUser.uid);
-            
-            await this.sendNotificationToFamily(memberIds, notificationData);
-        }
-    }
-
-    async notifyItemCompleted(item, completedByName) {
-        const notificationData = {
-            title: '✅ Item Purchased',
-            body: `${completedByName} purchased ${item.name}`,
-            data: { tab: 'purchases' }
-        };
-
-        if (app.currentFamily) {
-            const familyDoc = await db.collection('families').doc(app.currentFamily).get();
-            const memberIds = familyDoc.data().members.filter(id => id !== app.currentUser.uid);
-            
-            await this.sendNotificationToFamily(memberIds, notificationData);
-        }
-    }
-
-    async notifyItemClaimed(item, claimedByName) {
-        const notificationData = {
-            title: '🛍️ Item Claimed',
-            body: `${claimedByName} will buy ${item.name}`,
-            data: { tab: 'list' }
-        };
-
-        if (app.currentFamily) {
-            const familyDoc = await db.collection('families').doc(app.currentFamily).get();
-            const memberIds = familyDoc.data().members.filter(id => id !== app.currentUser.uid);
-            
-            await this.sendNotificationToFamily(memberIds, notificationData);
-        }
-    }
-
-    async notifyUrgentItem(item, addedByName) {
-        const notificationData = {
-            title: '🚨 Urgent Item Added',
-            body: `${addedByName} added urgent item: ${item.name}`,
-            data: { tab: 'list' }
-        };
-
-        if (app.currentFamily) {
-            const familyDoc = await db.collection('families').doc(app.currentFamily).get();
-            const memberIds = familyDoc.data().members;
-            
-            await this.sendNotificationToFamily(memberIds, notificationData);
-        }
-    }
-
+    // Enable/disable notifications
     async enableNotifications() {
-        const enabled = await this.requestPermission();
-        if (enabled && app.currentUser) {
-            await db.collection('users').doc(app.currentUser.uid).update({
-                notificationEnabled: true
-            });
-        }
-        return enabled;
+        return await this.requestPermission();
     }
 
     async disableNotifications() {
         this.permission = 'denied';
-        
-        if (app.currentUser) {
-            await db.collection('users').doc(app.currentUser.uid).update({
-                notificationEnabled: false,
-                fcmToken: null
-            });
-        }
-        
+        await this.removeTokenFromFirestore();
         Utils.showToast('Notifications disabled');
-    }
-
-    async getNotificationStatus() {
-        if (!app.currentUser) return false;
-
-        try {
-            const userDoc = await db.collection('users').doc(app.currentUser.uid).get();
-            return userDoc.exists ? userDoc.data().notificationEnabled : false;
-        } catch (error) {
-            console.error('Error getting notification status:', error);
-            return false;
-        }
     }
 }
 
-// Initialize notification manager
+// Initialize when app is ready
 let notificationManager;
-document.addEventListener('DOMContentLoaded', () => {
-    notificationManager = new NotificationManager();
-});
+
+function initNotificationManager() {
+    if (typeof app !== 'undefined' && app.currentUser) {
+        notificationManager = new NotificationManager();
+    } else {
+        // Wait for app to be ready
+        setTimeout(initNotificationManager, 1000);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', initNotificationManager);
