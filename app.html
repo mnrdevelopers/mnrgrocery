@@ -400,66 +400,45 @@
     <script src="onesignal-notifications.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-   <script>
-    // Initialize OneSignal with correct GitHub Pages configuration
+ <script>
+    // Minimal OneSignal configuration for GitHub Pages
     window.OneSignal = window.OneSignal || [];
     
     OneSignal.push(function() {
-        // Get the correct base path for GitHub Pages
-        const isGitHubPages = window.location.hostname.includes('github.io');
-        const repoName = 'FamilyGrocer'; // Your repository name
-        const basePath = isGitHubPages ? `/${repoName}/` : '/';
-        
         OneSignal.init({
             appId: "6b1d9511-6cdb-44cb-bff0-8798cf9bfc46",
             
-            // GitHub Pages specific configuration
-            serviceWorkerPath: basePath + 'OneSignalSDKWorker.js',
-            serviceWorkerParam: { 
-                scope: basePath
-            },
+            // Use CDN service workers directly (no local files)
+            serviceWorkerPath: 'https://cdn.onesignal.com/sdks/OneSignalSDKWorker.js',
             
-            // Alternative: Use absolute paths
-            // serviceWorkerPath: '/FamilyGrocer/OneSignalSDKWorker.js',
-            // serviceWorkerParam: { scope: '/FamilyGrocer/' },
+            // Disable service worker if still having issues
+            // serviceWorker: false,
             
-            // Notification prompt settings
+            // Alternative: Use subdomain forwarder
+            subdomainName: "familgrocer", // You need to set this up in OneSignal dashboard
+            
             promptOptions: {
                 slidedown: {
                     enabled: true,
-                    autoPrompt: true,
-                    timeDelay: 3,
-                    pageViews: 1,
-                    actionMessage: "Get notified when family members add items",
-                    acceptButtonText: "ALLOW",
-                    cancelButtonText: "NO THANKS"
+                    autoPrompt: true
                 }
             },
-            
-            // Notify button settings
             notifyButton: {
-                enable: true,
-                size: 'medium',
-                theme: 'default',
-                position: 'bottom-right',
-                prenotify: true,
-                showCredit: false
-            },
-            
-            // Other settings
-            allowLocalhostAsSecureOrigin: true,
-            autoResubscribe: true,
-            autoRegister: true
-        });
-        
-        // OneSignal initialized callback
-        OneSignal.push(function() {
-            console.log('OneSignal SDK initialized successfully');
-            console.log('Service Worker path:', OneSignal.config.serviceWorkerPath);
-            console.log('Service Worker scope:', OneSignal.config.serviceWorkerParam.scope);
-            window.dispatchEvent(new Event('onesignal:initialized'));
+                enable: false // Disable bell to simplify
+            }
         });
     });
+
+    // If service workers are blocked, use this fallback
+    if (!('serviceWorker' in navigator)) {
+        console.warn('Service Workers not available - using fallback mode');
+        window.OneSignal = window.OneSignal || [];
+        OneSignal.push(function() {
+            OneSignal.SERVICE_WORKER_UPDATER_PATH = 'https://cdn.onesignal.com/sdks/OneSignalSDKWorker.js';
+            OneSignal.SERVICE_WORKER_PATH = 'https://cdn.onesignal.com/sdks/OneSignalSDKWorker.js';
+            OneSignal.SERVICE_WORKER_PARAM = { scope: '/' };
+        });
+    }
 </script>
      <script src="sw-init.js"></script>
     <script src="onesignal-config.js"></script>
