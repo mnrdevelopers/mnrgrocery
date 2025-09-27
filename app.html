@@ -322,10 +322,100 @@
                             <button class="settings-btn" id="setBudgetBtn">
                                 <span>💰</span> Set Monthly Budget
                             </button>
-                            <button class="settings-btn" id="notificationSettings">
-                                <span>🔔</span> Notification Settings
-                            </button>
+                            <button class="settings-btn" id="notificationSettingsBtn">
+                                 <span>🔔</span> Notification Settings
+                             </button>
                         </div>
+
+                        <div class="modal fade" id="notificationSettingsModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">🔔 Notification Settings</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="notification-settings">
+                    <div class="notification-item">
+                        <div class="notification-info">
+                            <h4>Enable Notifications</h4>
+                            <p>Show in-app notifications for activities</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="enableNotifications" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="notification-item">
+                        <div class="notification-info">
+                            <h4>Notification Sound</h4>
+                            <p>Play sound when notifications appear</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="enableSound" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="notification-item">
+                        <div class="notification-info">
+                            <h4>New Items</h4>
+                            <p>Notify when family members add items</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="notifyItemAdded" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="notification-item">
+                        <div class="notification-info">
+                            <h4>Purchased Items</h4>
+                            <p>Notify when items are marked as purchased</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="notifyItemCompleted" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="notification-item">
+                        <div class="notification-info">
+                            <h4>Price Updates</h4>
+                            <p>Notify when prices are added to items</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="notifyPriceAdded" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="notification-item">
+                        <div class="notification-info">
+                            <h4>Family Activity</h4>
+                            <p>Notify about family member activities</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="notifyFamilyActivity" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-3">
+                    <button class="test-notification-btn" id="testNotificationBtn">
+                        <i class="fas fa-bell"></i> Test Notification
+                    </button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="saveNotificationSettings">Save Settings</button>
+            </div>
+        </div>
+    </div>
+</div>
                         
                         <div class="settings-section">
                             <h3 class="settings-title">👨‍👩‍👧‍👦 Family Settings</h3>
