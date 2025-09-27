@@ -1,10 +1,15 @@
 // Utility functions
 class Utils {
     static showToast(message, type = 'info') {
-        const toast = document.getElementById('toast');
+        // First try to find toast element
+        let toast = document.getElementById('toast');
+        
+        // Create toast if it doesn't exist
         if (!toast) {
-            console.log('Toast:', message);
-            return;
+            toast = document.createElement('div');
+            toast.id = 'toast';
+            toast.className = 'toast';
+            document.body.appendChild(toast);
         }
         
         toast.textContent = message;
@@ -20,7 +25,14 @@ class Utils {
         if (!dateString) return 'No date';
         
         try {
-            const date = new Date(dateString);
+            // Handle Firestore timestamps
+            let date;
+            if (dateString.toDate) {
+                date = dateString.toDate();
+            } else {
+                date = new Date(dateString);
+            }
+            
             const now = new Date();
             const diffTime = Math.abs(now - date);
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -32,9 +44,10 @@ class Utils {
             return date.toLocaleDateString('en-IN', { 
                 day: 'numeric', 
                 month: 'short',
-                year: 'numeric'
+                year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
             });
         } catch (error) {
+            console.warn('Date formatting error:', error);
             return 'Invalid date';
         }
     }
@@ -57,11 +70,16 @@ class Utils {
     }
 
     static validatePassword(password) {
-        return password.length >= 6;
+        return password && password.length >= 6;
     }
 
     static generateFamilyCode() {
-        return Math.random().toString(36).substring(2, 8).toUpperCase();
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let result = '';
+        for (let i = 0; i < 6; i++) {
+            result += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return result;
     }
 
     static async copyToClipboard(text) {
@@ -70,17 +88,25 @@ class Utils {
             return true;
         } catch (err) {
             // Fallback for older browsers
-            const textArea = document.createElement('textarea');
-            textArea.value = text;
-            document.body.appendChild(textArea);
-            textArea.select();
-            const success = document.execCommand('copy');
-            document.body.removeChild(textArea);
-            return success;
+            try {
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                textArea.style.position = 'fixed';
+                textArea.style.opacity = '0';
+                document.body.appendChild(textArea);
+                textArea.select();
+                const success = document.execCommand('copy');
+                document.body.removeChild(textArea);
+                return success;
+            } catch (fallbackErr) {
+                console.error('Copy to clipboard failed:', fallbackErr);
+                return false;
+            }
         }
     }
 
     static formatCurrency(amount) {
+        if (!amount || isNaN(amount)) return '₹0';
         return new Intl.NumberFormat('en-IN', {
             style: 'currency',
             currency: 'INR',
@@ -97,8 +123,18 @@ class Utils {
     }
 
     static sanitizeInput(input) {
+        if (!input) return '';
         const div = document.createElement('div');
-        div.textContent = input;
+        div.textContent = input.toString();
         return div.innerHTML;
+    }
+
+    // Add safe element query method
+    static getElement(id) {
+        const element = document.getElementById(id);
+        if (!element) {
+            console.warn(`Element with id '${id}' not found`);
+        }
+        return element;
     }
 }
