@@ -110,6 +110,13 @@ async createUserDocument() {
         if (joinFamilyBtn) joinFamilyBtn.addEventListener('click', () => this.joinFamily());
         if (logoutFromSetup) logoutFromSetup.addEventListener('click', () => this.logoutUser());
 
+        // Notifications
+        const testNotificationBtn = document.getElementById('testNotificationBtn');
+const enableNotificationsBtn = document.getElementById('enableNotificationsBtn');
+
+if (testNotificationBtn) testNotificationBtn.addEventListener('click', () => this.testOneSignalNotification());
+if (enableNotificationsBtn) enableNotificationsBtn.addEventListener('click', () => this.enableOneSignalNotifications());
+        
         // Main app
         const addItemBtn = document.getElementById('addItemBtn');
         const itemInput = document.getElementById('itemInput');
@@ -217,6 +224,24 @@ async createUserDocument() {
         }
     }
 
+    async testOneSignalNotification() {
+    if (window.oneSignalManager) {
+        await oneSignalManager.testNotification();
+    } else {
+        Utils.showToast('OneSignal not ready yet');
+    }
+}
+
+async enableOneSignalNotifications() {
+    if (window.oneSignalManager) {
+        const success = await oneSignalManager.promptForNotifications();
+        if (success) {
+            Utils.showToast('Notification prompt shown');
+        }
+    } else {
+        Utils.showToast('OneSignal not available');
+    }
+}
     
 async createFamily() {
     const familyCode = Utils.generateFamilyCode();
@@ -482,6 +507,11 @@ async addItem() {
 
     try {
         const docRef = await db.collection('items').add(itemData);
+
+        // Send OneSignal notification
+        if (window.oneSignalManager) {
+            await oneSignalManager.notifyNewItem(itemData, userName);
+        }
         
         // Send notification for new item
         if (notificationManager && isUrgent) {
@@ -521,9 +551,9 @@ async toggleItem(id) {
                 completedByName: newCompletedState ? userName : null
             });
 
-            // Send notification when item is completed
-            if (newCompletedState && notificationManager) {
-                await notificationManager.notifyItemCompleted(item, userName);
+            // Send OneSignal notification when item is completed
+            if (newCompletedState && window.oneSignalManager) {
+                await oneSignalManager.notifyItemCompleted(item, userName);
             }
         } catch (error) {
             console.error('Error updating item:', error);
@@ -544,9 +574,9 @@ async claimItem(id) {
             claimedAt: firebase.firestore.FieldValue.serverTimestamp()
         });
 
-        // Send notification when item is claimed
-        if (notificationManager) {
-            await notificationManager.notifyItemClaimed(item, userName);
+        // Send OneSignal notification when item is claimed
+        if (window.oneSignalManager) {
+            await oneSignalManager.notifyItemClaimed(item, userName);
         }
         
         Utils.showToast('Item claimed');
