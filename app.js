@@ -31,81 +31,74 @@ class GroceryApp {
         });
     }
 
-    async checkUserFamily() {
-        if (!this.currentUser) {
-            window.location.href = 'auth.html';
-            return;
-        }
-
-        try {
-            await this.debugUserStatus();
-            console.log('Checking user family for:', this.currentUser.uid);
-            
-            // Ensure user document exists
-            await this.ensureUserDocumentExists();
-            
-            const userDoc = await db.collection('users').doc(this.currentUser.uid).get();
-            
-            if (userDoc.exists) {
-                const userData = userDoc.data();
-                console.log('User data:', userData);
-                
-                if (userData.familyId) {
-                    this.currentFamily = userData.familyId;
-                    console.log('User has family:', this.currentFamily);
-                    
-                    // Set up notification manager context
-                    if (window.notificationManager) {
-                        window.notificationManager.setUserContext(this.currentUser.uid, this.currentFamily);
-                        await window.notificationManager.init();
-                    }
-                    
-                    await this.loadFamilyData();
-                    this.showScreen('app');
-                } else {
-                    console.log('User needs family setup');
-                    this.showScreen('familySetup');
-                }
-            } else {
-                console.log('User document not found, creating one...');
-                await this.createUserDocument();
-                this.showScreen('familySetup');
-            }
-            
-            this.hideLoadingScreen();
-        } catch (error) {
-            console.error("Error checking user family:", error);
-            Utils.showToast('Error loading user data: ' + error.message);
-            this.showScreen('familySetup');
-            this.hideLoadingScreen();
-        }
+  async checkUserFamily() {
+    if (!this.currentUser) {
+        window.location.href = 'auth.html';
+        return;
     }
 
-    async ensureUserDocumentExists() {
+    try {
+        await this.debugUserStatus();
+        console.log('Checking user family for:', this.currentUser.uid);
+        
+        // Ensure user document exists
+        await this.ensureUserDocumentExists();
+        
         const userDoc = await db.collection('users').doc(this.currentUser.uid).get();
         
-        if (!userDoc.exists) {
-            console.log('Creating missing user document for:', this.currentUser.uid);
+        if (userDoc.exists) {
+            const userData = userDoc.data();
+            console.log('User data:', userData);
+            
+            if (userData.familyId) {
+                this.currentFamily = userData.familyId;
+                console.log('User has family:', this.currentFamily);
+                await this.loadFamilyData();
+                this.showScreen('app');
+            } else {
+                console.log('User needs family setup');
+                this.showScreen('familySetup');
+            }
+        } else {
+            console.log('User document not found, creating one...');
             await this.createUserDocument();
+            this.showScreen('familySetup');
         }
+        
+        this.hideLoadingScreen();
+    } catch (error) {
+        console.error("Error checking user family:", error);
+        Utils.showToast('Error loading user data: ' + error.message);
+        this.showScreen('familySetup');
+        this.hideLoadingScreen();
     }
+}
 
-    async createUserDocument() {
-        const userData = {
-            name: this.currentUser.displayName || 'User',
-            email: this.currentUser.email,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-            photoURL: this.currentUser.photoURL || null,
-            preferences: {
-                notifications: true,
-                budget: 5000
-            },
-            familyId: null
-        };
-
-        await db.collection('users').doc(this.currentUser.uid).set(userData);
-        console.log('User document created successfully');
+async ensureUserDocumentExists() {
+    const userDoc = await db.collection('users').doc(this.currentUser.uid).get();
+    
+    if (!userDoc.exists) {
+        console.log('Creating missing user document for:', this.currentUser.uid);
+        await this.createUserDocument();
     }
+}
+
+async createUserDocument() {
+    const userData = {
+        name: this.currentUser.displayName || 'User',
+        email: this.currentUser.email,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        photoURL: this.currentUser.photoURL || null,
+        preferences: {
+            notifications: true,
+            budget: 5000
+        },
+        familyId: null
+    };
+
+    await db.collection('users').doc(this.currentUser.uid).set(userData);
+    console.log('User document created successfully');
+}
 
     setupEventListeners() {
         // Family setup
@@ -160,12 +153,6 @@ class GroceryApp {
         if (savePriceBtn) savePriceBtn.addEventListener('click', () => this.savePurchasePrice());
         if (purchaseItemSelect) purchaseItemSelect.addEventListener('change', () => this.updatePurchaseForm());
         if (addPriceBtn) addPriceBtn.addEventListener('click', () => this.switchTab('purchases'));
-
-        // Notification settings
-        const notificationSettingsBtn = document.getElementById('notificationSettingsBtn');
-        if (notificationSettingsBtn) {
-            notificationSettingsBtn.addEventListener('click', () => this.showNotificationSettings());
-        }
 
         // Actions
         const copyFamilyCodeBtn = document.getElementById('copyFamilyCode');
@@ -230,129 +217,129 @@ class GroceryApp {
         }
     }
 
-    async createFamily() {
-        const familyCode = Utils.generateFamilyCode();
-        
-        console.log('Creating family with code:', familyCode);
+async createFamily() {
+    const familyCode = Utils.generateFamilyCode();
+    
+    console.log('Creating family with code:', familyCode);
 
-        let userName = 'User';
-        try {
-            const userDoc = await db.collection('users').doc(this.currentUser.uid).get();
-            if (userDoc.exists && userDoc.data().name) {
-                userName = userDoc.data().name;
-            }
-        } catch (error) {
-            console.error('Error getting user name:', error);
+    let userName = 'User';
+    try {
+        const userDoc = await db.collection('users').doc(this.currentUser.uid).get();
+        if (userDoc.exists && userDoc.data().name) {
+            userName = userDoc.data().name;
         }
-
-        const familyData = {
-            name: `${userName}'s Family`,
-            createdBy: this.currentUser.uid,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-            members: [this.currentUser.uid],
-            code: familyCode
-        };
-
-        Utils.showToast('Creating family...');
-
-        try {
-            console.log('Creating family document...');
-            
-            // Create family document
-            await db.collection('families').doc(familyCode).set(familyData);
-            
-            console.log('Updating user document...');
-            
-            // Update user's familyId
-            await db.collection('users').doc(this.currentUser.uid).update({
-                familyId: familyCode
-            });
-
-            this.currentFamily = familyCode;
-            this.showScreen('app');
-            await this.loadFamilyData();
-            Utils.showToast(`Family created! Code: ${familyCode}`);
-        } catch (error) {
-            console.error('Error creating family:', error);
-            console.error('Error code:', error.code);
-            
-            let errorMessage = 'Error creating family: ' + error.message;
-            
-            if (error.code === 'permission-denied') {
-                errorMessage = 'Permission denied. Please check Firestore rules.';
-            }
-            
-            Utils.showToast(errorMessage);
-        }
+    } catch (error) {
+        console.error('Error getting user name:', error);
     }
 
-    async joinFamily() {
-        const familyCodeInput = document.getElementById('familyCodeInput');
-        const familyCode = familyCodeInput ? familyCodeInput.value.toUpperCase().trim() : '';
+    const familyData = {
+        name: `${userName}'s Family`,
+        createdBy: this.currentUser.uid,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        members: [this.currentUser.uid],
+        code: familyCode
+    };
+
+    Utils.showToast('Creating family...');
+
+    try {
+        console.log('Creating family document...');
         
-        if (!familyCode) {
-            Utils.showToast('Please enter a family code');
+        // Create family document
+        await db.collection('families').doc(familyCode).set(familyData);
+        
+        console.log('Updating user document...');
+        
+        // Update user's familyId
+        await db.collection('users').doc(this.currentUser.uid).update({
+            familyId: familyCode
+        });
+
+        this.currentFamily = familyCode;
+        this.showScreen('app');
+        await this.loadFamilyData();
+        Utils.showToast(`Family created! Code: ${familyCode}`);
+    } catch (error) {
+        console.error('Error creating family:', error);
+        console.error('Error code:', error.code);
+        
+        let errorMessage = 'Error creating family: ' + error.message;
+        
+        if (error.code === 'permission-denied') {
+            errorMessage = 'Permission denied. Please check Firestore rules.';
+        }
+        
+        Utils.showToast(errorMessage);
+    }
+}
+
+ async joinFamily() {
+    const familyCodeInput = document.getElementById('familyCodeInput');
+    const familyCode = familyCodeInput ? familyCodeInput.value.toUpperCase().trim() : '';
+    
+    if (!familyCode) {
+        Utils.showToast('Please enter a family code');
+        return;
+    }
+
+    if (familyCode.length !== 6) {
+        Utils.showToast('Family code must be 6 characters');
+        return;
+    }
+
+    Utils.showToast('Joining family...');
+
+    try {
+        console.log('Attempting to join family:', familyCode);
+        
+        // Ensure user document exists
+        await this.ensureUserDocumentExists();
+        
+        // First, check if family exists
+        const familyDoc = await db.collection('families').doc(familyCode).get();
+        console.log('Family document exists:', familyDoc.exists);
+        
+        if (!familyDoc.exists) {
+            Utils.showToast('Family not found. Check the code and try again.');
             return;
         }
 
-        if (familyCode.length !== 6) {
-            Utils.showToast('Family code must be 6 characters');
+        const familyData = familyDoc.data();
+        console.log('Family data:', familyData);
+        
+        // Check if user is already a member
+        if (familyData.members && familyData.members.includes(this.currentUser.uid)) {
+            Utils.showToast('You are already a member of this family');
             return;
         }
 
-        Utils.showToast('Joining family...');
+        console.log('Updating family members...');
+        
+        // Update family members array
+        await db.collection('families').doc(familyCode).update({
+            members: firebase.firestore.FieldValue.arrayUnion(this.currentUser.uid)
+        });
 
-        try {
-            console.log('Attempting to join family:', familyCode);
-            
-            // Ensure user document exists
-            await this.ensureUserDocumentExists();
-            
-            // First, check if family exists
-            const familyDoc = await db.collection('families').doc(familyCode).get();
-            console.log('Family document exists:', familyDoc.exists);
-            
-            if (!familyDoc.exists) {
-                Utils.showToast('Family not found. Check the code and try again.');
-                return;
-            }
+        console.log('Updating user document...');
+        
+        // Update user's familyId
+        await db.collection('users').doc(this.currentUser.uid).update({
+            familyId: familyCode
+        });
 
-            const familyData = familyDoc.data();
-            console.log('Family data:', familyData);
-            
-            // Check if user is already a member
-            if (familyData.members && familyData.members.includes(this.currentUser.uid)) {
-                Utils.showToast('You are already a member of this family');
-                return;
-            }
-
-            console.log('Updating family members...');
-            
-            // Update family members array
-            await db.collection('families').doc(familyCode).update({
-                members: firebase.firestore.FieldValue.arrayUnion(this.currentUser.uid)
-            });
-
-            console.log('Updating user document...');
-            
-            // Update user's familyId
-            await db.collection('users').doc(this.currentUser.uid).update({
-                familyId: familyCode
-            });
-
-            this.currentFamily = familyCode;
-            this.showScreen('app');
-            await this.loadFamilyData();
-            Utils.showToast('Joined family successfully!');
-            
-            // Clear input field
-            if (familyCodeInput) familyCodeInput.value = '';
-            
-        } catch (error) {
-            console.error('Error joining family:', error);
-            Utils.showToast('Error joining family: ' + error.message);
-        }
+        this.currentFamily = familyCode;
+        this.showScreen('app');
+        await this.loadFamilyData();
+        Utils.showToast('Joined family successfully!');
+        
+        // Clear input field
+        if (familyCodeInput) familyCodeInput.value = '';
+        
+    } catch (error) {
+        console.error('Error joining family:', error);
+        Utils.showToast('Error joining family: ' + error.message);
     }
+}
 
     async loadFamilyData() {
         if (!this.currentFamily) return;
@@ -1152,124 +1139,42 @@ class GroceryApp {
         }
     }
 
-    showNotificationSettings() {
-        if (!window.notificationManager) {
-            Utils.showToast('Notification system not available');
-            return;
-        }
-        
-        const settings = window.notificationManager.getSettings();
-        
-        // Update switch states
-        const enableNotifications = document.getElementById('enableNotifications');
-        const enableSound = document.getElementById('enableSound');
-        const notifyItemAdded = document.getElementById('notifyItemAdded');
-        const notifyItemCompleted = document.getElementById('notifyItemCompleted');
-        const notifyPriceAdded = document.getElementById('notifyPriceAdded');
-        const notifyFamilyActivity = document.getElementById('notifyFamilyActivity');
-        
-        if (enableNotifications) enableNotifications.checked = settings.notifications;
-        if (enableSound) enableSound.checked = settings.sound;
-        if (notifyItemAdded) notifyItemAdded.checked = settings.itemAdded;
-        if (notifyItemCompleted) notifyItemCompleted.checked = settings.itemCompleted;
-        if (notifyPriceAdded) notifyPriceAdded.checked = settings.priceAdded;
-        if (notifyFamilyActivity) notifyFamilyActivity.checked = settings.familyActivity;
-        
-        // Show modal using Bootstrap
-        const modalElement = document.getElementById('notificationSettingsModal');
-        if (modalElement) {
-            const modal = new bootstrap.Modal(modalElement);
-            modal.show();
-            
-            // Setup modal events
-            this.setupNotificationModalEvents();
-        }
-    }
-
-    setupNotificationModalEvents() {
-        const testBtn = document.getElementById('testNotificationBtn');
-        const saveBtn = document.getElementById('saveNotificationSettings');
-        
-        if (testBtn) {
-            testBtn.addEventListener('click', () => {
-                if (window.notificationManager) {
-                    window.notificationManager.testNotification();
-                }
-            });
-        }
-        
-        if (saveBtn) {
-            saveBtn.addEventListener('click', () => {
-                this.saveNotificationSettings();
-            });
-        }
-    }
-
-    saveNotificationSettings() {
-        if (!window.notificationManager) return;
-        
-        const newSettings = {
-            notifications: document.getElementById('enableNotifications').checked,
-            sound: document.getElementById('enableSound').checked,
-            itemAdded: document.getElementById('notifyItemAdded').checked,
-            itemCompleted: document.getElementById('notifyItemCompleted').checked,
-            priceAdded: document.getElementById('notifyPriceAdded').checked,
-            familyActivity: document.getElementById('notifyFamilyActivity').checked
-        };
-        
-        window.notificationManager.updateSettings(newSettings);
-        Utils.showToast('Notification settings saved!');
-        
-        // Close modal
-        const modalElement = document.getElementById('notificationSettingsModal');
-        if (modalElement) {
-            const modal = bootstrap.Modal.getInstance(modalElement);
-            if (modal) {
-                modal.hide();
-            }
-        }
-    }
-
     async debugUserStatus() {
-        console.log('=== DEBUG USER STATUS ===');
-        console.log('Current User UID:', this.currentUser?.uid);
-        console.log('Current User Email:', this.currentUser?.email);
-        console.log('Current User Display Name:', this.currentUser?.displayName);
-        
-        try {
-            const userDoc = await db.collection('users').doc(this.currentUser.uid).get();
-            console.log('User Document Exists:', userDoc.exists);
-            if (userDoc.exists) {
-                console.log('User Document Data:', userDoc.data());
-            }
-            
-            // Check if user exists in any family
-            const families = await db.collection('families').get();
-            console.log('Total families:', families.size);
-            
-            families.forEach(doc => {
-                const family = doc.data();
-                if (family.members && family.members.includes(this.currentUser.uid)) {
-                    console.log('User found in family:', doc.id);
-                }
-            });
-            
-        } catch (error) {
-            console.error('Debug error:', error);
+    console.log('=== DEBUG USER STATUS ===');
+    console.log('Current User UID:', this.currentUser?.uid);
+    console.log('Current User Email:', this.currentUser?.email);
+    console.log('Current User Display Name:', this.currentUser?.displayName);
+    
+    try {
+        const userDoc = await db.collection('users').doc(this.currentUser.uid).get();
+        console.log('User Document Exists:', userDoc.exists);
+        if (userDoc.exists) {
+            console.log('User Document Data:', userDoc.data());
         }
-        console.log('=== END DEBUG ===');
+        
+        // Check if user exists in any family
+        const families = await db.collection('families').get();
+        console.log('Total families:', families.size);
+        
+        families.forEach(doc => {
+            const family = doc.data();
+            if (family.members && family.members.includes(this.currentUser.uid)) {
+                console.log('User found in family:', doc.id);
+            }
+        });
+        
+    } catch (error) {
+        console.error('Debug error:', error);
     }
+    console.log('=== END DEBUG ===');
+}
+
 
     async logoutUser() {
         if (confirm('Are you sure you want to logout?')) {
             // Unsubscribe from listeners
             if (this.itemsUnsubscribe) this.itemsUnsubscribe();
             if (this.familyUnsubscribe) this.familyUnsubscribe();
-            
-            // Clean up notification manager
-            if (window.notificationManager) {
-                window.notificationManager.cleanup();
-            }
 
             try {
                 await auth.signOut();
