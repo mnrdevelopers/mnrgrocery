@@ -86,6 +86,236 @@ body {
     font-size: 1.1rem;
 }
 
+/* In-App Notifications */
+.in-app-notifications {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    z-index: 1000;
+    max-width: 350px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.in-app-notification {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    padding: 15px;
+    margin-bottom: 10px;
+    box-shadow: var(--shadow-lg);
+    border-left: 4px solid var(--primary);
+    transform: translateX(100%);
+    opacity: 0;
+    transition: all 0.3s ease;
+    cursor: default;
+}
+
+.in-app-notification.show {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.in-app-notification:hover {
+    transform: translateX(-5px);
+    box-shadow: var(--shadow-xl);
+}
+
+.in-app-notification-info {
+    border-left-color: var(--info);
+    background: linear-gradient(135deg, var(--surface) 0%, #f0f9ff 100%);
+}
+
+.in-app-notification-success {
+    border-left-color: var(--success);
+    background: linear-gradient(135deg, var(--surface) 0%, #f0fdf4 100%);
+}
+
+.in-app-notification-warning {
+    border-left-color: var(--warning);
+    background: linear-gradient(135deg, var(--surface) 0%, #fffbeb 100%);
+}
+
+.in-app-notification-urgent {
+    border-left-color: var(--danger);
+    background: linear-gradient(135deg, var(--surface) 0%, #fef2f2 100%);
+    animation: pulse 2s infinite;
+}
+
+.notification-content {
+    position: relative;
+}
+
+.notification-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 5px;
+}
+
+.notification-title {
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    margin-right: 20px;
+}
+
+.notification-close {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: var(--text-secondary);
+    padding: 0;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.notification-close:hover {
+    background: var(--divider);
+    color: var(--text-primary);
+}
+
+.notification-message {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    margin-bottom: 5px;
+}
+
+.notification-time {
+    font-size: 0.7rem;
+    color: var(--text-light);
+    text-align: right;
+}
+
+/* Notification bell indicator */
+.notification-bell {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1001;
+    background: var(--primary);
+    color: white;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: var(--shadow-lg);
+    transition: all 0.3s ease;
+}
+
+.notification-bell:hover {
+    transform: scale(1.1);
+    background: var(--primary-dark);
+}
+
+.notification-bell.has-notifications::after {
+    content: '';
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    width: 12px;
+    height: 12px;
+    background: var(--danger);
+    border-radius: 50%;
+    border: 2px solid white;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .in-app-notifications {
+        right: 10px;
+        left: 10px;
+        max-width: none;
+    }
+    
+    .in-app-notification {
+        max-width: 100%;
+    }
+    
+    .notification-bell {
+        top: 10px;
+        right: 10px;
+        width: 40px;
+        height: 40px;
+    }
+}
+
+/* Animation for urgent notifications */
+@keyframes pulse {
+    0% { transform: translateX(0); }
+    50% { transform: translateX(-3px); }
+    100% { transform: translateX(0); }
+}
+
+/* Notification settings panel */
+.notification-settings {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 1px solid var(--divider);
+}
+
+.notification-toggle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--divider);
+    transition: .4s;
+    border-radius: 24px;
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .toggle-slider {
+    background-color: var(--primary);
+}
+
+input:checked + .toggle-slider:before {
+    transform: translateX(26px);
+}
+
 /* Family Setup Screen */
 .family-setup {
     position: fixed;
