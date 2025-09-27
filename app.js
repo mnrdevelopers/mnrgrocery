@@ -38,6 +38,7 @@ class GroceryApp {
     }
 
     try {
+        await this.debugUserStatus();
         console.log('Checking user family for:', this.currentUser.uid);
         
         // Ensure user document exists
