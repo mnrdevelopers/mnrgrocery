@@ -9,25 +9,62 @@ class GroceryApp {
         this.currentSearch = '';
         this.itemsUnsubscribe = null;
         this.familyUnsubscribe = null;
+        this.userUnsubscribe = null;
         this.completedVisible = false;
         this.userPreferences = {};
+        this.isInitialized = false;
         
         this.init();
     }
 
     async init() {
-        await this.checkAuthState();
-        this.setupEventListeners();
+        try {
+            await this.checkFirebaseReady();
+            await this.checkAuthState();
+            this.setupEventListeners();
+            this.isInitialized = true;
+        } catch (error) {
+            console.error('App initialization failed:', error);
+            Utils.showToast('App initialization failed. Please refresh the page.', 'error');
+        }
+    }
+
+    async checkFirebaseReady() {
+        return new Promise((resolve) => {
+            if (typeof firebase !== 'undefined' && firebase.apps.length > 0 && db && auth) {
+                resolve();
+            } else {
+                const checkInterval = setInterval(() => {
+                    if (typeof firebase !== 'undefined' && firebase.apps.length > 0 && db && auth) {
+                        clearInterval(checkInterval);
+                        resolve();
+                    }
+                }, 100);
+                
+                // Timeout after 5 seconds
+                setTimeout(() => {
+                    clearInterval(checkInterval);
+                    resolve();
+                }, 5000);
+            }
+        });
     }
 
     async checkAuthState() {
-        auth.onAuthStateChanged(async (user) => {
-            if (user) {
-                this.currentUser = user;
-                await this.checkUserFamily();
-            } else {
-                window.location.href = 'auth.html';
-            }
+        return new Promise((resolve) => {
+            auth.onAuthStateChanged(async (user) => {
+                if (user) {
+                    this.currentUser = user;
+                    await this.checkUserFamily();
+                } else {
+                    window.location.href = 'auth.html';
+                }
+                resolve();
+            }, (error) => {
+                console.error('Auth state error:', error);
+                Utils.showToast('Authentication error. Please try again.', 'error');
+                resolve();
+            });
         });
     }
 
