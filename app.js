@@ -1303,7 +1303,6 @@ async createFamily() {
         }
     }
   }
-}
 
 // Initialize the app when DOM is loaded
 let app;
