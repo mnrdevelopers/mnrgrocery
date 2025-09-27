@@ -86,6 +86,25 @@ body {
     font-size: 1.1rem;
 }
 
+/* Add to your CSS */
+.online-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--success);
+    animation: pulse 2s infinite;
+}
+
+.offline-dot {
+    background-color: var(--danger);
+    animation: none;
+}
+
+.connecting-dot {
+    background-color: var(--warning);
+    animation: pulse 1s infinite;
+}
+
 /* Notification Settings Styles */
 .notification-settings {
     background: var(--surface);
