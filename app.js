@@ -31,25 +31,73 @@ class GroceryApp {
         });
     }
 
-    async checkUserFamily() {
-        try {
-            const userDoc = await db.collection('users').doc(this.currentUser.uid).get();
+  async checkUserFamily() {
+    if (!this.currentUser) {
+        window.location.href = 'auth.html';
+        return;
+    }
+
+    try {
+        console.log('Checking user family for:', this.currentUser.uid);
+        
+        // Ensure user document exists
+        await this.ensureUserDocumentExists();
+        
+        const userDoc = await db.collection('users').doc(this.currentUser.uid).get();
+        
+        if (userDoc.exists) {
+            const userData = userDoc.data();
+            console.log('User data:', userData);
             
-            if (userDoc.exists && userDoc.data().familyId) {
-                this.currentFamily = userDoc.data().familyId;
+            if (userData.familyId) {
+                this.currentFamily = userData.familyId;
+                console.log('User has family:', this.currentFamily);
                 await this.loadFamilyData();
                 this.showScreen('app');
             } else {
+                console.log('User needs family setup');
                 this.showScreen('familySetup');
             }
-            this.hideLoadingScreen();
-        } catch (error) {
-            console.error("Error getting user document:", error);
-            Utils.showToast('Error loading user data');
+        } else {
+            console.log('User document not found, creating one...');
+            await this.createUserDocument();
             this.showScreen('familySetup');
-            this.hideLoadingScreen();
         }
+        
+        this.hideLoadingScreen();
+    } catch (error) {
+        console.error("Error checking user family:", error);
+        Utils.showToast('Error loading user data: ' + error.message);
+        this.showScreen('familySetup');
+        this.hideLoadingScreen();
     }
+}
+
+async ensureUserDocumentExists() {
+    const userDoc = await db.collection('users').doc(this.currentUser.uid).get();
+    
+    if (!userDoc.exists) {
+        console.log('Creating missing user document for:', this.currentUser.uid);
+        await this.createUserDocument();
+    }
+}
+
+async createUserDocument() {
+    const userData = {
+        name: this.currentUser.displayName || 'User',
+        email: this.currentUser.email,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        photoURL: this.currentUser.photoURL || null,
+        preferences: {
+            notifications: true,
+            budget: 5000
+        },
+        familyId: null
+    };
+
+    await db.collection('users').doc(this.currentUser.uid).set(userData);
+    console.log('User document created successfully');
+}
 
     setupEventListeners() {
         // Family setup
@@ -224,7 +272,7 @@ async createFamily() {
     }
 }
 
-  async joinFamily() {
+ async joinFamily() {
     const familyCodeInput = document.getElementById('familyCodeInput');
     const familyCode = familyCodeInput ? familyCodeInput.value.toUpperCase().trim() : '';
     
@@ -242,6 +290,9 @@ async createFamily() {
 
     try {
         console.log('Attempting to join family:', familyCode);
+        
+        // Ensure user document exists
+        await this.ensureUserDocumentExists();
         
         // First, check if family exists
         const familyDoc = await db.collection('families').doc(familyCode).get();
@@ -284,19 +335,8 @@ async createFamily() {
         if (familyCodeInput) familyCodeInput.value = '';
         
     } catch (error) {
-        console.error('Full error details:', error);
-        console.error('Error code:', error.code);
-        console.error('Error message:', error.message);
-        
-        let errorMessage = 'Error joining family: ' + error.message;
-        
-        if (error.code === 'permission-denied') {
-            errorMessage = 'Permission denied. Please check that Firestore rules allow writes.';
-        } else if (error.code === 'not-found') {
-            errorMessage = 'Family not found. Please check the family code.';
-        }
-        
-        Utils.showToast(errorMessage);
+        console.error('Error joining family:', error);
+        Utils.showToast('Error joining family: ' + error.message);
     }
 }
 
