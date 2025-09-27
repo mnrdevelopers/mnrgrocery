@@ -1466,13 +1466,28 @@ button:disabled:hover {
     }
     
     .family-info {
-        justify-content: center;
+        flex-direction: column;
+        gap: 12px;
+        align-items: center;
     }
     
     .stats {
-        gap: 15px;
+        gap: 10px;
     }
     
+    .stat-item {
+        padding: 10px 12px;
+        min-width: 70px;
+    }
+    
+    .stat-value {
+        font-size: 1.2rem;
+    }
+    
+    .user-welcome {
+        padding: 6px 12px;
+    }
+ 
     .card {
         padding: 20px;
         margin-bottom: 15px;
