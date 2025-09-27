@@ -400,31 +400,66 @@
     <script src="onesignal-notifications.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <script>
-        // Initialize OneSignal
-        window.OneSignal = window.OneSignal || [];
-        OneSignal.push(function() {
-            OneSignal.init({
-                appId: "6b1d9511-6cdb-44cb-bff0-8798cf9bfc46", // Replace with your actual App ID
-                safari_web_id: "web.onesignal.auto.xxx", // Optional: for Safari
-                allowLocalhostAsSecureOrigin: true,
-                notifyButton: {
-                    enable: true, // Enable bell icon
-                },
-                promptOptions: {
-                    /* Customize the prompt */
-                    slidedown: {
-                        enabled: true,
-                        autoPrompt: true,
-                        timeDelay: 3,
-                        pageViews: 1,
-                        actionMessage: "We'd like to show you notifications for the latest updates from your family",
-                        acceptButtonText: "ALLOW",
-                        cancelButtonText: "NO THANKS"
-                    }
+   <script>
+    // Initialize OneSignal with correct GitHub Pages configuration
+    window.OneSignal = window.OneSignal || [];
+    
+    OneSignal.push(function() {
+        // Get the correct base path for GitHub Pages
+        const isGitHubPages = window.location.hostname.includes('github.io');
+        const repoName = 'FamilyGrocer'; // Your repository name
+        const basePath = isGitHubPages ? `/${repoName}/` : '/';
+        
+        OneSignal.init({
+            appId: "6b1d9511-6cdb-44cb-bff0-8798cf9bfc46",
+            
+            // GitHub Pages specific configuration
+            serviceWorkerPath: basePath + 'OneSignalSDKWorker.js',
+            serviceWorkerParam: { 
+                scope: basePath
+            },
+            
+            // Alternative: Use absolute paths
+            // serviceWorkerPath: '/FamilyGrocer/OneSignalSDKWorker.js',
+            // serviceWorkerParam: { scope: '/FamilyGrocer/' },
+            
+            // Notification prompt settings
+            promptOptions: {
+                slidedown: {
+                    enabled: true,
+                    autoPrompt: true,
+                    timeDelay: 3,
+                    pageViews: 1,
+                    actionMessage: "Get notified when family members add items",
+                    acceptButtonText: "ALLOW",
+                    cancelButtonText: "NO THANKS"
                 }
-            });
+            },
+            
+            // Notify button settings
+            notifyButton: {
+                enable: true,
+                size: 'medium',
+                theme: 'default',
+                position: 'bottom-right',
+                prenotify: true,
+                showCredit: false
+            },
+            
+            // Other settings
+            allowLocalhostAsSecureOrigin: true,
+            autoResubscribe: true,
+            autoRegister: true
         });
-    </script>
+        
+        // OneSignal initialized callback
+        OneSignal.push(function() {
+            console.log('OneSignal SDK initialized successfully');
+            console.log('Service Worker path:', OneSignal.config.serviceWorkerPath);
+            console.log('Service Worker scope:', OneSignal.config.serviceWorkerParam.scope);
+            window.dispatchEvent(new Event('onesignal:initialized'));
+        });
+    });
+</script>
 </body>
 </html>
