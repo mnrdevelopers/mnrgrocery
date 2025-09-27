@@ -168,76 +168,122 @@ class GroceryApp {
         }
     }
 
-    async createFamily() {
-        const familyCode = Utils.generateFamilyCode();
+ async createFamily() {
+    const familyCode = Utils.generateFamilyCode();
+    
+    // Get user data to use their name
+    let userName = 'My';
+    try {
         const userDoc = await db.collection('users').doc(this.currentUser.uid).get();
-        const userName = userDoc.exists ? userDoc.data().name : 'My';
-
-        const familyData = {
-            name: `${userName}'s Family`,
-            createdBy: this.currentUser.uid,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-            members: [this.currentUser.uid]
-        };
-
-        Utils.showToast('Creating family...');
-
-        try {
-            await db.collection('families').doc(familyCode).set(familyData);
-            await db.collection('users').doc(this.currentUser.uid).update({
-                familyId: familyCode
-            });
-
-            this.currentFamily = familyCode;
-            this.showScreen('app');
-            await this.loadFamilyData();
-            Utils.showToast(`Family created! Code: ${familyCode}`);
-        } catch (error) {
-            console.error('Error creating family:', error);
-            Utils.showToast('Error creating family: ' + error.message);
+        if (userDoc.exists && userDoc.data().name) {
+            userName = userDoc.data().name;
         }
+    } catch (error) {
+        console.error('Error getting user data:', error);
     }
 
-    async joinFamily() {
-        const familyCodeInput = document.getElementById('familyCodeInput');
-        const familyCode = familyCodeInput ? familyCodeInput.value.toUpperCase().trim() : '';
+    const familyData = {
+        name: `${userName}'s Family`,
+        createdBy: this.currentUser.uid,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        members: [this.currentUser.uid],
+        code: familyCode
+    };
+
+    Utils.showToast('Creating family...');
+
+    try {
+        // Create family document
+        await db.collection('families').doc(familyCode).set(familyData);
         
-        if (!familyCode) {
-            Utils.showToast('Please enter a family code');
-            return;
+        // Update user's familyId
+        await db.collection('users').doc(this.currentUser.uid).update({
+            familyId: familyCode
+        });
+
+        this.currentFamily = familyCode;
+        this.showScreen('app');
+        await this.loadFamilyData();
+        Utils.showToast(`Family created! Code: ${familyCode}`);
+    } catch (error) {
+        console.error('Error creating family:', error);
+        
+        let errorMessage = 'Error creating family';
+        if (error.code === 'permission-denied') {
+            errorMessage = 'Permission denied. Please check Firebase security rules.';
+        } else {
+            errorMessage = error.message;
         }
-
-        if (familyCode.length !== 6) {
-            Utils.showToast('Family code must be 6 characters');
-            return;
-        }
-
-        Utils.showToast('Joining family...');
-
-        try {
-            const familyDoc = await db.collection('families').doc(familyCode).get();
-            
-            if (!familyDoc.exists) {
-                throw new Error('Family not found. Check the code and try again.');
-            }
-
-            await db.collection('families').doc(familyCode).update({
-                members: firebase.firestore.FieldValue.arrayUnion(this.currentUser.uid)
-            });
-
-            await db.collection('users').doc(this.currentUser.uid).update({
-                familyId: familyCode
-            });
-
-            this.currentFamily = familyCode;
-            this.showScreen('app');
-            await this.loadFamilyData();
-            Utils.showToast('Joined family successfully!');
-        } catch (error) {
-            console.error('Error joining family:', error);
-            Utils.showToast('Error joining family: ' + error.message);
-        }
+        
+        Utils.showToast(errorMessage);
     }
+}
+
+   async joinFamily() {
+    const familyCodeInput = document.getElementById('familyCodeInput');
+    const familyCode = familyCodeInput ? familyCodeInput.value.toUpperCase().trim() : '';
+    
+    if (!familyCode) {
+        Utils.showToast('Please enter a family code');
+        return;
+    }
+
+    if (familyCode.length !== 6) {
+        Utils.showToast('Family code must be 6 characters');
+        return;
+    }
+
+    Utils.showToast('Joining family...');
+
+    try {
+        // First, check if family exists
+        const familyDoc = await db.collection('families').doc(familyCode).get();
+        
+        if (!familyDoc.exists) {
+            throw new Error('Family not found. Check the code and try again.');
+        }
+
+        const familyData = familyDoc.data();
+        
+        // Check if user is already a member
+        if (familyData.members && familyData.members.includes(this.currentUser.uid)) {
+            Utils.showToast('You are already a member of this family');
+            return;
+        }
+
+        // Update family members array
+        await db.collection('families').doc(familyCode).update({
+            members: firebase.firestore.FieldValue.arrayUnion(this.currentUser.uid)
+        });
+
+        // Update user's familyId
+        await db.collection('users').doc(this.currentUser.uid).update({
+            familyId: familyCode
+        });
+
+        this.currentFamily = familyCode;
+        this.showScreen('app');
+        await this.loadFamilyData();
+        Utils.showToast('Joined family successfully!');
+        
+        // Clear input field
+        if (familyCodeInput) familyCodeInput.value = '';
+        
+    } catch (error) {
+        console.error('Error joining family:', error);
+        
+        let errorMessage = 'Error joining family';
+        if (error.code === 'permission-denied') {
+            errorMessage = 'Permission denied. Please check Firebase security rules.';
+        } else if (error.code === 'not-found') {
+            errorMessage = 'Family not found. Check the code and try again.';
+        } else {
+            errorMessage = error.message;
+        }
+        
+        Utils.showToast(errorMessage);
+    }
+}
 
     async loadFamilyData() {
         if (!this.currentFamily) return;
