@@ -36,7 +36,7 @@ class GroceryApp {
         });
     }
 
-  async checkUserFamily() {
+ async checkUserFamily() {
     if (!this.currentUser) {
         window.location.href = 'auth.html';
         return;
@@ -58,6 +58,13 @@ class GroceryApp {
             if (userData.familyId) {
                 this.currentFamily = userData.familyId;
                 console.log('User has family:', this.currentFamily);
+                
+                // SET UP NOTIFICATION MANAGER CONTEXT
+                if (window.notificationManager) {
+                    window.notificationManager.setUserContext(this.currentUser.uid, this.currentFamily);
+                    await window.notificationManager.init();
+                }
+                
                 await this.loadFamilyData();
                 this.showScreen('app');
             } else {
@@ -480,12 +487,6 @@ async createFamily() {
         try {
             await db.collection('items').add(itemData);
 
-             // Show notification to other family members
-        if (notificationManager) {
-            notificationManager.showItemAddedNotification(name, userName);
-        }
-        
-            
             // Reset form
             if (itemInput) itemInput.value = '';
             if (qtyInput) qtyInput.value = '1';
@@ -517,10 +518,6 @@ async createFamily() {
                 completedByName: newCompletedState ? userName : null
             });
 
-            // Show notification
-            if (newCompletedState && notificationManager) {
-                notificationManager.showItemCompletedNotification(item.name, userName);
-            }
         } catch (error) {
             console.error('Error updating item:', error);
             Utils.showToast('Error updating item: ' + error.message);
@@ -1287,18 +1284,22 @@ async createFamily() {
 }
 
 
-    async logoutUser() {
-        if (confirm('Are you sure you want to logout?')) {
-            // Unsubscribe from listeners
-            if (this.itemsUnsubscribe) this.itemsUnsubscribe();
-            if (this.familyUnsubscribe) this.familyUnsubscribe();
+   async logoutUser() {
+    if (confirm('Are you sure you want to logout?')) {
+        // Unsubscribe from listeners
+        if (this.itemsUnsubscribe) this.itemsUnsubscribe();
+        if (this.familyUnsubscribe) this.familyUnsubscribe();
+        
+        // Clean up notification manager
+        if (window.notificationManager) {
+            window.notificationManager.cleanup();
+        }
 
-            try {
-                await auth.signOut();
-                window.location.href = 'index.html';
-            } catch (error) {
-                Utils.showToast('Error logging out: ' + error.message);
-            }
+        try {
+            await auth.signOut();
+            window.location.href = 'index.html';
+        } catch (error) {
+            Utils.showToast('Error logging out: ' + error.message);
         }
     }
 }
