@@ -155,7 +155,7 @@ class OneSignalManager {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': 'Basic YOUR-REST-API-KEY' // Get from OneSignal dashboard
+                    'Authorization': 'Basic scjso5hs7eewm537xkog7pm4b' // Get from OneSignal dashboard
                 },
                 body: JSON.stringify(payload)
             });
