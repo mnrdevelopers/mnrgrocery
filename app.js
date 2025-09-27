@@ -31,18 +31,20 @@ class GroceryApp {
         });
     }
 
-  async checkUserFamily() {
+ async checkUserFamily() {
     if (!this.currentUser) {
         window.location.href = 'auth.html';
         return;
     }
 
     try {
-        await this.debugUserStatus();
         console.log('Checking user family for:', this.currentUser.uid);
         
         // Ensure user document exists
         await this.ensureUserDocumentExists();
+        
+        // Set up real-time listener for user changes
+        await this.setupUserListener();
         
         const userDoc = await db.collection('users').doc(this.currentUser.uid).get();
         
@@ -188,27 +190,47 @@ async createUserDocument() {
         if (purchaseDate) purchaseDate.value = today;
     }
 
-    showScreen(screen) {
-        const loadingScreen = document.getElementById('loadingScreen');
-        const familySetupScreen = document.getElementById('familySetupScreen');
-        const appScreen = document.getElementById('appScreen');
+   showScreen(screen) {
+    const loadingScreen = document.getElementById('loadingScreen');
+    const familySetupScreen = document.getElementById('familySetupScreen');
+    const appScreen = document.getElementById('appScreen');
 
-        // Hide all screens first
-        if (loadingScreen) loadingScreen.style.display = 'none';
-        if (familySetupScreen) familySetupScreen.style.display = 'none';
-        if (appScreen) appScreen.style.display = 'none';
+    console.log('Switching to screen:', screen);
 
-        // Show the requested screen
-        switch(screen) {
-            case 'familySetup':
-                if (familySetupScreen) familySetupScreen.style.display = 'block';
-                break;
-            case 'app':
-                if (appScreen) appScreen.style.display = 'block';
-                this.loadUserPreferences();
-                break;
-        }
+    // Hide all screens first
+    if (loadingScreen) loadingScreen.style.display = 'none';
+    if (familySetupScreen) familySetupScreen.style.display = 'none';
+    if (appScreen) appScreen.style.display = 'none';
+
+    // Show the requested screen with animation
+    switch(screen) {
+        case 'familySetup':
+            if (familySetupScreen) {
+                familySetupScreen.style.display = 'block';
+                familySetupScreen.style.opacity = '0';
+                setTimeout(() => {
+                    familySetupScreen.style.opacity = '1';
+                    familySetupScreen.style.transition = 'opacity 0.3s ease';
+                }, 10);
+            }
+            break;
+        case 'app':
+            if (appScreen) {
+                appScreen.style.display = 'block';
+                appScreen.style.opacity = '0';
+                setTimeout(() => {
+                    appScreen.style.opacity = '1';
+                    appScreen.style.transition = 'opacity 0.3s ease';
+                }, 10);
+                
+                // Ensure family data is loaded
+                if (this.currentFamily) {
+                    this.loadFamilyData();
+                }
+            }
+            break;
     }
+}
 
     hideLoadingScreen() {
         const loadingScreen = document.getElementById('loadingScreen');
@@ -216,6 +238,34 @@ async createUserDocument() {
             loadingScreen.style.display = 'none';
         }
     }
+
+    async setupUserListener() {
+    // Listen for changes to the user document
+    this.userUnsubscribe = db.collection('users').doc(this.currentUser.uid)
+        .onSnapshot((doc) => {
+            if (doc.exists) {
+                const userData = doc.data();
+                const newFamilyId = userData.familyId;
+                
+                // If familyId changed and we're on family setup screen, redirect
+                if (newFamilyId && newFamilyId !== this.currentFamily) {
+                    console.log('Family ID changed detected:', newFamilyId);
+                    this.currentFamily = newFamilyId;
+                    
+                    const familySetupScreen = document.getElementById('familySetupScreen');
+                    if (familySetupScreen && familySetupScreen.style.display !== 'none') {
+                        Utils.showToast('Family membership updated! Redirecting...');
+                        setTimeout(() => {
+                            this.showScreen('app');
+                            this.loadFamilyData();
+                        }, 1000);
+                    }
+                }
+            }
+        }, (error) => {
+            console.error('Error listening to user document:', error);
+        });
+}
 
 async createFamily() {
     const familyCode = Utils.generateFamilyCode();
@@ -255,25 +305,24 @@ async createFamily() {
             familyId: familyCode
         });
 
+        // Update local state immediately
         this.currentFamily = familyCode;
-        this.showScreen('app');
-        await this.loadFamilyData();
-        Utils.showToast(`Family created! Code: ${familyCode}`);
+        
+        Utils.showToast(`Family created! Code: ${familyCode}. Redirecting...`);
+        
+        // Short delay before redirecting
+        setTimeout(() => {
+            this.showScreen('app');
+            this.loadFamilyData();
+        }, 1500);
+        
     } catch (error) {
         console.error('Error creating family:', error);
-        console.error('Error code:', error.code);
-        
-        let errorMessage = 'Error creating family: ' + error.message;
-        
-        if (error.code === 'permission-denied') {
-            errorMessage = 'Permission denied. Please check Firestore rules.';
-        }
-        
-        Utils.showToast(errorMessage);
+        Utils.showToast('Error creating family: ' + error.message);
     }
 }
 
- async joinFamily() {
+async joinFamily() {
     const familyCodeInput = document.getElementById('familyCodeInput');
     const familyCode = familyCodeInput ? familyCodeInput.value.toUpperCase().trim() : '';
     
@@ -309,7 +358,19 @@ async createFamily() {
         
         // Check if user is already a member
         if (familyData.members && familyData.members.includes(this.currentUser.uid)) {
-            Utils.showToast('You are already a member of this family');
+            Utils.showToast('You are already a member of this family. Redirecting...');
+            
+            // Update local state and redirect
+            this.currentFamily = familyCode;
+            
+            // Force reload user data
+            await this.reloadUserData();
+            
+            // Redirect to main app
+            setTimeout(() => {
+                this.showScreen('app');
+                this.loadFamilyData();
+            }, 1000);
             return;
         }
 
@@ -327,10 +388,17 @@ async createFamily() {
             familyId: familyCode
         });
 
+        // Update local state immediately
         this.currentFamily = familyCode;
-        this.showScreen('app');
-        await this.loadFamilyData();
-        Utils.showToast('Joined family successfully!');
+        
+        // Show success message and redirect
+        Utils.showToast('Joined family successfully! Redirecting...');
+        
+        // Short delay before redirecting
+        setTimeout(() => {
+            this.showScreen('app');
+            this.loadFamilyData();
+        }, 1500);
         
         // Clear input field
         if (familyCodeInput) familyCodeInput.value = '';
@@ -341,6 +409,21 @@ async createFamily() {
     }
 }
 
+    async reloadUserData() {
+    try {
+        console.log('Reloading user data...');
+        const userDoc = await db.collection('users').doc(this.currentUser.uid).get();
+        
+        if (userDoc.exists) {
+            const userData = userDoc.data();
+            this.currentFamily = userData.familyId || null;
+            console.log('Reloaded user data. Family ID:', this.currentFamily);
+        }
+    } catch (error) {
+        console.error('Error reloading user data:', error);
+    }
+}
+    
     async loadFamilyData() {
         if (!this.currentFamily) return;
 
@@ -1170,18 +1253,18 @@ async createFamily() {
 }
 
 
-    async logoutUser() {
-        if (confirm('Are you sure you want to logout?')) {
-            // Unsubscribe from listeners
-            if (this.itemsUnsubscribe) this.itemsUnsubscribe();
-            if (this.familyUnsubscribe) this.familyUnsubscribe();
+   async logoutUser() {
+    if (confirm('Are you sure you want to logout?')) {
+        // Unsubscribe from all listeners
+        if (this.itemsUnsubscribe) this.itemsUnsubscribe();
+        if (this.familyUnsubscribe) this.familyUnsubscribe();
+        if (this.userUnsubscribe) this.userUnsubscribe(); // Add this line
 
-            try {
-                await auth.signOut();
-                window.location.href = 'index.html';
-            } catch (error) {
-                Utils.showToast('Error logging out: ' + error.message);
-            }
+        try {
+            await auth.signOut();
+            window.location.href = 'index.html';
+        } catch (error) {
+            Utils.showToast('Error logging out: ' + error.message);
         }
     }
 }
