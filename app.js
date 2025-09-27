@@ -1139,29 +1139,7 @@ async createFamily() {
         }
     }
 
-    async logoutUser() {
-        if (confirm('Are you sure you want to logout?')) {
-            // Unsubscribe from listeners
-            if (this.itemsUnsubscribe) this.itemsUnsubscribe();
-            if (this.familyUnsubscribe) this.familyUnsubscribe();
-
-            try {
-                await auth.signOut();
-                window.location.href = 'index.html';
-            } catch (error) {
-                Utils.showToast('Error logging out: ' + error.message);
-            }
-        }
-    }
-}
-
-// Initialize the app when DOM is loaded
-let app;
-document.addEventListener('DOMContentLoaded', () => {
-    app = new GroceryApp();
-});
-
-async debugUserStatus() {
+    async debugUserStatus() {
     console.log('=== DEBUG USER STATUS ===');
     console.log('Current User UID:', this.currentUser?.uid);
     console.log('Current User Email:', this.currentUser?.email);
@@ -1190,3 +1168,27 @@ async debugUserStatus() {
     }
     console.log('=== END DEBUG ===');
 }
+
+
+    async logoutUser() {
+        if (confirm('Are you sure you want to logout?')) {
+            // Unsubscribe from listeners
+            if (this.itemsUnsubscribe) this.itemsUnsubscribe();
+            if (this.familyUnsubscribe) this.familyUnsubscribe();
+
+            try {
+                await auth.signOut();
+                window.location.href = 'index.html';
+            } catch (error) {
+                Utils.showToast('Error logging out: ' + error.message);
+            }
+        }
+    }
+}
+
+// Initialize the app when DOM is loaded
+let app;
+document.addEventListener('DOMContentLoaded', () => {
+    app = new GroceryApp();
+});
+
