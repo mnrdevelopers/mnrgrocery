@@ -9,19 +9,7 @@ const firebaseConfig = {
     measurementId: "G-7RRDLTWZHX"
 };
 
-try {
-    // Initialize Firebase
-    if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-    }
-    const db = firebase.firestore();
-    const auth = firebase.auth();
-    
-    // Enable offline persistence
-    db.enablePersistence().catch((err) => {
-        console.warn('Firestore persistence failed:', err);
-    });
-    
-} catch (error) {
-    console.error('Firebase initialization error:', error);
-}
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+window.db = firebase.firestore();
+window.auth = firebase.auth();
