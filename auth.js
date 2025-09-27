@@ -234,35 +234,54 @@ class AuthManager {
         }
     }
 
-    async signInWithGoogle(context) {
-        const provider = new firebase.auth.GoogleAuthProvider();
+  async signInWithGoogle(context) {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    
+    Utils.showToast('Signing in with Google...');
+
+    try {
+        const result = await auth.signInWithPopup(provider);
+        const user = result.user;
+
+        // Check if user document already exists
+        const userDoc = await db.collection('users').doc(user.uid).get();
         
-        Utils.showToast('Signing in with Google...');
-
-        try {
-            const result = await auth.signInWithPopup(provider);
-            const user = result.user;
-
-            if (context === 'signup') {
-                // Save user data for new signups
-                await db.collection('users').doc(user.uid).set({
-                    name: user.displayName || 'User',
-                    email: user.email,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    photoURL: user.photoURL || null,
-                    preferences: {
-                        notifications: true,
-                        budget: 5000
-                    }
-                });
-            }
-
-            Utils.showToast('Signed in successfully with Google!');
-        } catch (error) {
-            console.error('Google sign-in error:', error);
-            Utils.showToast('Google sign-in failed: ' + error.message);
+        if (!userDoc.exists) {
+            // Create user document for new Google sign-ups
+            await db.collection('users').doc(user.uid).set({
+                name: user.displayName || 'User',
+                email: user.email,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                photoURL: user.photoURL || null,
+                preferences: {
+                    notifications: true,
+                    budget: 5000
+                },
+                // Important: Initialize with null familyId
+                familyId: null
+            });
+            console.log('New Google user document created');
+        } else {
+            console.log('Existing Google user document found');
         }
+
+        Utils.showToast('Signed in successfully with Google!');
+        
+        // Redirect to appropriate screen based on family status
+        const updatedUserDoc = await db.collection('users').doc(user.uid).get();
+        if (updatedUserDoc.exists && updatedUserDoc.data().familyId) {
+            // User has a family, redirect to app
+            window.location.href = 'app.html';
+        } else {
+            // User needs to join/create family
+            window.location.href = 'app.html'; // Will handle family setup in app.html
+        }
+        
+    } catch (error) {
+        console.error('Google sign-in error:', error);
+        Utils.showToast('Google sign-in failed: ' + error.message);
     }
+}
 
     async resetPassword() {
         const email = document.getElementById('resetEmail')?.value.trim();
