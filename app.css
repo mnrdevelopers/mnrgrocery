@@ -121,6 +121,227 @@ header {
     gap: 15px;
 }
 
+/* Missing button styles */
+.primary, .secondary, .outline, .danger {
+    padding: 14px 24px;
+    border-radius: var(--radius-lg);
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+    text-align: center;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 48px;
+}
+
+.primary {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+.primary:hover {
+    background: var(--primary-dark);
+    border-color: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.secondary {
+    background: var(--secondary);
+    color: white;
+    border-color: var(--secondary);
+}
+
+.secondary:hover {
+    background: var(--success);
+    border-color: var(--success);
+    transform: translateY(-2px);
+}
+
+.outline {
+    background: transparent;
+    color: var(--primary);
+    border-color: var(--primary);
+}
+
+.outline:hover {
+    background: var(--primary-light);
+    transform: translateY(-2px);
+}
+
+.danger {
+    background: var(--danger);
+    color: white;
+    border-color: var(--danger);
+}
+
+.danger:hover {
+    background: #dc2626;
+    border-color: #dc2626;
+    transform: translateY(-2px);
+}
+
+/* Form input styles */
+input, select, textarea {
+    padding: 14px 16px;
+    border: 2px solid var(--divider);
+    border-radius: var(--radius);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: var(--surface);
+    color: var(--text-primary);
+}
+
+input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Family setup screen improvements */
+.join-family {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.join-family input {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Price display improvements */
+.item-price-added {
+    background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    margin-left: 8px;
+    box-shadow: var(--shadow);
+}
+
+/* Empty state button styling */
+.empty-state button {
+    margin-top: 10px;
+}
+
+/* Purchase form improvements */
+.purchase-form input, .purchase-form select {
+    width: 100%;
+    margin-bottom: 5px;
+}
+
+/* Category button active state enhancement */
+.category-btn.active {
+    transform: scale(1.05);
+    box-shadow: var(--shadow-md);
+}
+
+/* Loading animation improvements */
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+}
+
+.loading-spinner-large {
+    animation: spin 1.5s linear infinite, bounce 2s ease-in-out infinite;
+}
+
+/* Card hover effects enhancement */
+.card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card:hover {
+    transform: translateY(-5px) scale(1.01);
+    box-shadow: var(--shadow-xl);
+}
+
+/* Navigation button active state improvement */
+.nav-btn.active {
+    transform: translateY(-8px);
+    box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+}
+
+/* Toast notification improvements */
+.toast {
+    backdrop-filter: blur(20px);
+    background: rgba(31, 41, 55, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Responsive improvements for smaller screens */
+@media (max-width: 480px) {
+    .primary, .secondary, .outline, .danger {
+        padding: 12px 20px;
+        font-size: 0.9rem;
+        min-height: 44px;
+    }
+    
+    .join-family {
+        flex-direction: column;
+    }
+    
+    .card:hover {
+        transform: translateY(-2px);
+    }
+}
+
+/* Smooth transitions for all interactive elements */
+button, input, select, .card, .nav-btn, .category-btn {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Focus states for accessibility */
+button:focus, input:focus, select:focus {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+/* Disabled state styling */
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+button:disabled:hover {
+    background: initial;
+    transform: none;
+}
+
+/* Text selection styling */
+::selection {
+    background: var(--primary-light);
+    color: var(--primary-dark);
+}
+
+/* Scrollbar styling for webkit browsers */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--divider);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--primary);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-dark);
+}
+
 .app-title {
     display: flex;
     align-items: center;
