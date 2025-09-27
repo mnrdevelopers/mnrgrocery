@@ -54,6 +54,7 @@ class GroceryApp {
                 this.currentFamily = userData.familyId;
                 console.log('User has family:', this.currentFamily);
                 await this.loadFamilyData();
+                this.updateHeaderUsername();
                 this.showScreen('app');
             } else {
                 console.log('User needs family setup');
@@ -865,6 +866,7 @@ async createFamily() {
     }
 
     async loadSettingsTab() {
+        this.updateHeaderUsername();
         const userNameDisplay = document.getElementById('userNameDisplay');
         const userEmailDisplay = document.getElementById('userEmailDisplay');
         const userAvatarLarge = document.getElementById('userAvatarLarge');
@@ -888,6 +890,21 @@ async createFamily() {
             console.error('Error loading user data:', error);
         }
     }
+
+    async updateHeaderUsername() {
+    const headerUsername = document.getElementById('headerUsername');
+    if (headerUsername && this.currentUser) {
+        try {
+            const userDoc = await db.collection('users').doc(this.currentUser.uid).get();
+            if (userDoc.exists) {
+                const userData = userDoc.data();
+                headerUsername.textContent = userData.name || 'User';
+            }
+        } catch (error) {
+            console.error('Error updating header username:', error);
+        }
+    }
+}
 
     updateStats() {
         const total = this.groceryItems.length;
