@@ -1,0 +1,316 @@
+:root {
+    --primary: #3B82F6;
+    --primary-dark: #2563EB;
+    --primary-light: #DBEAFE;
+    --secondary: #10B981;
+    --accent: #8B5CF6;
+    --danger: #EF4444;
+    --warning: #F59E0B;
+    --success: #10B981;
+    --info: #06B6D4;
+    --background: #F9FAFB;
+    --surface: #FFFFFF;
+    --text-primary: #1F2937;
+    --text-secondary: #6B7280;
+    --text-light: #9CA3AF;
+    --divider: #E5E7EB;
+    --border: #D1D5DB;
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-md: 0 6px 10px -1px rgba(0, 0, 0, 0.1), 0 2px 6px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --radius: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 20px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+body {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    min-height: 100vh;
+    color: white;
+}
+
+.auth-container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+}
+
+.auth-header {
+    text-align: center;
+    margin-bottom: 40px;
+    padding-top: 20px;
+}
+
+.back-btn {
+    color: white;
+    text-decoration: none;
+    font-size: 1.1rem;
+    align-self: flex-start;
+    margin-bottom: 30px;
+    padding: 10px 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: opacity 0.3s ease;
+}
+
+.back-btn:hover {
+    opacity: 0.8;
+}
+
+.auth-header .logo {
+    font-size: 4rem;
+    margin-bottom: 15px;
+    display: block;
+}
+
+.auth-header h1 {
+    font-size: 2.2rem;
+    margin-bottom: 8px;
+    font-weight: 700;
+}
+
+.auth-header p {
+    opacity: 0.9;
+    font-size: 1.1rem;
+}
+
+.auth-card {
+    background: var(--surface);
+    border-radius: var(--radius-xl);
+    padding: 30px 25px;
+    box-shadow: var(--shadow-xl);
+    animation: slideUp 0.6s ease-out;
+    max-width: 420px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.auth-tabs {
+    display: flex;
+    margin-bottom: 25px;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background: var(--divider);
+    border: 1px solid var(--border);
+}
+
+.auth-tab {
+    flex: 1;
+    padding: 16px;
+    text-align: center;
+    background: transparent;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+}
+
+.auth-tab.active {
+    background: var(--primary);
+    color: white;
+    box-shadow: var(--shadow);
+}
+
+.auth-form {
+    display: none;
+    animation: fadeIn 0.4s ease-in;
+}
+
+.auth-form.active {
+    display: block;
+}
+
+.auth-input {
+    width: 100%;
+    padding: 16px 18px;
+    border: 2px solid var(--divider);
+    border-radius: var(--radius-lg);
+    font-size: 1rem;
+    margin-bottom: 18px;
+    transition: all 0.3s ease;
+    background: var(--surface);
+    color: var(--text-primary);
+}
+
+.auth-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    transform: translateY(-1px);
+}
+
+.auth-input::placeholder {
+    color: var(--text-light);
+}
+
+.auth-options {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 25px;
+    font-size: 0.9rem;
+}
+
+.forgot-password {
+    background: none;
+    border: none;
+    color: var(--primary);
+    cursor: pointer;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.forgot-password:hover {
+    color: var(--primary-dark);
+    text-decoration: underline;
+}
+
+.auth-btn {
+    width: 100%;
+    padding: 16px 20px;
+    border: none;
+    border-radius: var(--radius-lg);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+.auth-btn.primary {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: white;
+    box-shadow: var(--shadow);
+}
+
+.auth-btn.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.auth-btn.google {
+    background: white;
+    color: var(--text-primary);
+    border: 2px solid var(--divider);
+    font-weight: 500;
+}
+
+.auth-btn.google:hover {
+    border-color: var(--primary);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow);
+}
+
+.auth-btn.outline {
+    background: transparent;
+    border: 2px solid var(--divider);
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.auth-btn.outline:hover {
+    border-color: var(--primary);
+    background: var(--primary-light);
+}
+
+.auth-divider {
+    text-align: center;
+    margin: 25px 0;
+    position: relative;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.auth-divider::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--divider);
+    z-index: 1;
+}
+
+.auth-divider span {
+    background: var(--surface);
+    padding: 0 20px;
+    position: relative;
+    z-index: 2;
+}
+
+.toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--text-primary);
+    color: white;
+    padding: 16px 24px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xl);
+    z-index: 1001;
+    opacity: 0;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    max-width: 90%;
+    text-align: center;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-10px);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 480px) {
+    .auth-container {
+        padding: 15px;
+    }
+    
+    .auth-card {
+        padding: 25px 20px;
+    }
+    
+    .auth-header .logo {
+        font-size: 3rem;
+    }
+    
+    .auth-header h1 {
+        font-size: 1.8rem;
+    }
+    
+    .auth-btn {
+        padding: 14px;
+    }
+}

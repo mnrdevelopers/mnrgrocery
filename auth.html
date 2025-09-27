@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FamilyGrocer - Authentication</title>
+    <meta name="theme-color" content="#3B82F6">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/auth.css">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-header">
+            <a href="index.html" class="back-btn">← Back to Home</a>
+            <div class="logo">🛒</div>
+            <h1>FamilyGrocer</h1>
+            <p>Sync grocery lists with your family</p>
+        </div>
+
+        <div class="auth-card">
+            <div class="auth-tabs">
+                <button class="auth-tab active" id="loginTab">Login</button>
+                <button class="auth-tab" id="signupTab">Sign Up</button>
+            </div>
+
+            <div id="loginForm" class="auth-form active">
+                <div class="form-group">
+                    <input type="email" id="loginEmail" placeholder="Enter your email" class="auth-input" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" id="loginPassword" placeholder="Enter your password" class="auth-input" required>
+                </div>
+                <div class="auth-options">
+                    <button class="forgot-password" id="forgotPassword">Forgot Password?</button>
+                </div>
+                <button id="loginBtn" class="auth-btn primary">Login to Your Account</button>
+                <div class="auth-divider">
+                    <span>or continue with</span>
+                </div>
+                <button id="googleLoginBtn" class="auth-btn google">
+                    <span>🔍</span>
+                    Continue with Google
+                </button>
+            </div>
+
+            <div id="signupForm" class="auth-form">
+                <div class="form-group">
+                    <input type="text" id="signupName" placeholder="Your full name" class="auth-input" required>
+                </div>
+                <div class="form-group">
+                    <input type="email" id="signupEmail" placeholder="Your email address" class="auth-input" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" id="signupPassword" placeholder="Create a password (min. 6 characters)" class="auth-input" required minlength="6">
+                </div>
+                <button id="signupBtn" class="auth-btn primary">Create New Account</button>
+                <div class="auth-divider">
+                    <span>or continue with</span>
+                </div>
+                <button id="googleSignupBtn" class="auth-btn google">
+                    <span>🔍</span>
+                    Continue with Google
+                </button>
+            </div>
+
+            <div id="resetPasswordForm" class="auth-form">
+                <div class="form-group">
+                    <input type="email" id="resetEmail" placeholder="Enter your email address" class="auth-input" required>
+                </div>
+                <button id="resetPasswordBtn" class="auth-btn primary">Send Reset Link</button>
+                <button class="auth-btn outline" id="backToLogin">Back to Login</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+
+    <script src="js/firebase-config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+</body>
+</html>
