@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FamilyGrocer - Smart Grocery List</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛒</text></svg>">
     <meta name="theme-color" content="#3B82F6">
     <link rel="stylesheet" href="app.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 <link rel="stylesheet" href="enhancements.css">
 </head>
@@ -51,10 +51,10 @@
             <div class="header-content">
                 <div class="app-title">
                     <h1><i class="fas fa-shopping-cart"></i> FamilyGrocer</h1>
-                   <div class="sync-status">
-    <div class="online-dot" id="connectionDot"></div>
-    <span id="connectionStatus">Live Sync</span>
-</div>
+                    <div class="sync-status">
+                        <div class="online-dot"></div>
+                        <span>Live Sync</span>
+                    </div>
                 </div>
                 <div class="family-info">
                     <div class="stats">
@@ -322,100 +322,10 @@
                             <button class="settings-btn" id="setBudgetBtn">
                                 <span>💰</span> Set Monthly Budget
                             </button>
-                            <button class="settings-btn" id="notificationSettingsBtn">
-                                 <span>🔔</span> Notification Settings
-                             </button>
+                            <button class="settings-btn" id="notificationSettings">
+                                <span>🔔</span> Notification Settings
+                            </button>
                         </div>
-
-                        <div class="modal fade" id="notificationSettingsModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">🔔 Notification Settings</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div class="notification-settings">
-                    <div class="notification-item">
-                        <div class="notification-info">
-                            <h4>Enable Notifications</h4>
-                            <p>Show in-app notifications for activities</p>
-                        </div>
-                        <label class="switch">
-                            <input type="checkbox" id="enableNotifications" checked>
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-                    
-                    <div class="notification-item">
-                        <div class="notification-info">
-                            <h4>Notification Sound</h4>
-                            <p>Play sound when notifications appear</p>
-                        </div>
-                        <label class="switch">
-                            <input type="checkbox" id="enableSound" checked>
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-                    
-                    <div class="notification-item">
-                        <div class="notification-info">
-                            <h4>New Items</h4>
-                            <p>Notify when family members add items</p>
-                        </div>
-                        <label class="switch">
-                            <input type="checkbox" id="notifyItemAdded" checked>
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-                    
-                    <div class="notification-item">
-                        <div class="notification-info">
-                            <h4>Purchased Items</h4>
-                            <p>Notify when items are marked as purchased</p>
-                        </div>
-                        <label class="switch">
-                            <input type="checkbox" id="notifyItemCompleted" checked>
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-                    
-                    <div class="notification-item">
-                        <div class="notification-info">
-                            <h4>Price Updates</h4>
-                            <p>Notify when prices are added to items</p>
-                        </div>
-                        <label class="switch">
-                            <input type="checkbox" id="notifyPriceAdded" checked>
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-                    
-                    <div class="notification-item">
-                        <div class="notification-info">
-                            <h4>Family Activity</h4>
-                            <p>Notify about family member activities</p>
-                        </div>
-                        <label class="switch">
-                            <input type="checkbox" id="notifyFamilyActivity" checked>
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-                </div>
-                
-                <div class="text-center mt-3">
-                    <button class="test-notification-btn" id="testNotificationBtn">
-                        <i class="fas fa-bell"></i> Test Notification
-                    </button>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" id="saveNotificationSettings">Save Settings</button>
-            </div>
-        </div>
-    </div>
-</div>
                         
                         <div class="settings-section">
                             <h3 class="settings-title">👨‍👩‍👧‍👦 Family Settings</h3>
@@ -470,9 +380,8 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 
     <script src="firebase-config.js"></script>
-<script src="utils.js"></script>
-<script src="notifications.js"></script>
-<script src="app.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="utils.js"></script>
+    <script src="app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
