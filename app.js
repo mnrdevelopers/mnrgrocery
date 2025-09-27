@@ -132,6 +132,20 @@ async createUserDocument() {
         if (joinFamilyBtn) joinFamilyBtn.addEventListener('click', () => this.joinFamily());
         if (logoutFromSetup) logoutFromSetup.addEventListener('click', () => this.logoutUser());
 
+        //Notifications
+        const testNotificationBtn = document.getElementById('testNotificationBtn');
+const enableBrowserNotificationsBtn = document.getElementById('enableBrowserNotificationsBtn');
+const clearNotificationsBtn = document.getElementById('clearNotificationsBtn');
+
+if (testNotificationBtn) testNotificationBtn.addEventListener('click', () => this.testNotification());
+if (enableBrowserNotificationsBtn) enableBrowserNotificationsBtn.addEventListener('click', () => this.enableBrowserNotifications());
+if (clearNotificationsBtn) clearNotificationsBtn.addEventListener('click', () => {
+    if (window.simpleNotifications) {
+        window.simpleNotifications.clearAll();
+        Utils.showToast('All notifications cleared');
+    }
+});
+
         // Main app
         const addItemBtn = document.getElementById('addItemBtn');
         const itemInput = document.getElementById('itemInput');
