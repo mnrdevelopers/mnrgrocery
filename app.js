@@ -1302,6 +1302,7 @@ async createFamily() {
             Utils.showToast('Error logging out: ' + error.message);
         }
     }
+  }
 }
 
 // Initialize the app when DOM is loaded
