@@ -13,12 +13,3 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 window.db = firebase.firestore();
 window.auth = firebase.auth();
-
-// Initialize Firebase Cloud Messaging
-let messaging;
-try {
-    messaging = firebase.messaging();
-    window.messaging = messaging;
-} catch (error) {
-    console.warn('Firebase Messaging not available:', error);
-}
