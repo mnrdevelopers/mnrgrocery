@@ -309,6 +309,17 @@ async createFamily() {
     }
 }
 
+    // Add to GroceryApp constructor or init method
+setupServiceWorkerMessaging() {
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.addEventListener('message', (event) => {
+            if (event.data && event.data.type === 'NAVIGATE_TO_TAB') {
+                this.switchTab(event.data.tab);
+            }
+        });
+    }
+}
+
  async joinFamily() {
     const familyCodeInput = document.getElementById('familyCodeInput');
     const familyCode = familyCodeInput ? familyCodeInput.value.toUpperCase().trim() : '';
