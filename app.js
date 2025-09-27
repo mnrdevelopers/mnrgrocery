@@ -1159,3 +1159,33 @@ let app;
 document.addEventListener('DOMContentLoaded', () => {
     app = new GroceryApp();
 });
+
+async debugUserStatus() {
+    console.log('=== DEBUG USER STATUS ===');
+    console.log('Current User UID:', this.currentUser?.uid);
+    console.log('Current User Email:', this.currentUser?.email);
+    console.log('Current User Display Name:', this.currentUser?.displayName);
+    
+    try {
+        const userDoc = await db.collection('users').doc(this.currentUser.uid).get();
+        console.log('User Document Exists:', userDoc.exists);
+        if (userDoc.exists) {
+            console.log('User Document Data:', userDoc.data());
+        }
+        
+        // Check if user exists in any family
+        const families = await db.collection('families').get();
+        console.log('Total families:', families.size);
+        
+        families.forEach(doc => {
+            const family = doc.data();
+            if (family.members && family.members.includes(this.currentUser.uid)) {
+                console.log('User found in family:', doc.id);
+            }
+        });
+        
+    } catch (error) {
+        console.error('Debug error:', error);
+    }
+    console.log('=== END DEBUG ===');
+}
