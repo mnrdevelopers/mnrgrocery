@@ -423,105 +423,126 @@ async createFamily() {
         }
     }
 
-    async addItem() {
-        const itemInput = document.getElementById('itemInput');
-        const qtyInput = document.getElementById('qtyInput');
-        const unitSelect = document.getElementById('unitSelect');
-        const categorySelect = document.getElementById('categorySelect');
-        const urgentCheckbox = document.getElementById('urgentCheckbox');
-        const repeatCheckbox = document.getElementById('repeatCheckbox');
-        
-        const name = itemInput ? itemInput.value.trim() : '';
-        const quantity = parseFloat(qtyInput ? qtyInput.value : 1) || 1;
-        const unit = unitSelect ? unitSelect.value : 'pcs';
-        const category = categorySelect ? categorySelect.value : 'uncategorized';
-        const isUrgent = urgentCheckbox ? urgentCheckbox.checked : false;
-        const isRecurring = repeatCheckbox ? repeatCheckbox.checked : false;
-        
-        if (name === '') {
-            Utils.showToast('Please enter an item name');
-            return;
-        }
+    // Add to GroceryApp class in app.js
 
-        const userDoc = await db.collection('users').doc(this.currentUser.uid).get();
-        const userName = userDoc.exists ? userDoc.data().name : 'User';
-
-        const itemData = {
-            name,
-            quantity,
-            unit,
-            category,
-            isUrgent,
-            isRecurring,
-            completed: false,
-            addedBy: this.currentUser.uid,
-            addedByName: userName,
-            familyId: this.currentFamily,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-            price: null,
-            purchaseDate: null,
-            store: null,
-            claimedBy: null,
-            claimedByName: null,
-            claimedAt: null
-        };
-
-        try {
-            await db.collection('items').add(itemData);
-            
-            // Reset form
-            if (itemInput) itemInput.value = '';
-            if (qtyInput) qtyInput.value = '1';
-            if (unitSelect) unitSelect.value = 'pcs';
-            if (categorySelect) categorySelect.value = 'uncategorized';
-            if (urgentCheckbox) urgentCheckbox.checked = false;
-            if (repeatCheckbox) repeatCheckbox.checked = false;
-            if (itemInput) itemInput.focus();
-            
-            Utils.showToast('Item added to list successfully');
-        } catch (error) {
-            console.error('Error adding item:', error);
-            Utils.showToast('Error adding item: ' + error.message);
-        }
+async addItem() {
+    const itemInput = document.getElementById('itemInput');
+    const qtyInput = document.getElementById('qtyInput');
+    const unitSelect = document.getElementById('unitSelect');
+    const categorySelect = document.getElementById('categorySelect');
+    const urgentCheckbox = document.getElementById('urgentCheckbox');
+    const repeatCheckbox = document.getElementById('repeatCheckbox');
+    
+    const name = itemInput ? itemInput.value.trim() : '';
+    const quantity = parseFloat(qtyInput ? qtyInput.value : 1) || 1;
+    const unit = unitSelect ? unitSelect.value : 'pcs';
+    const category = categorySelect ? categorySelect.value : 'uncategorized';
+    const isUrgent = urgentCheckbox ? urgentCheckbox.checked : false;
+    const isRecurring = repeatCheckbox ? repeatCheckbox.checked : false;
+    
+    if (name === '') {
+        Utils.showToast('Please enter an item name');
+        return;
     }
 
-    async toggleItem(id) {
-        const item = this.groceryItems.find(item => item.id === id);
-        if (item) {
-            const newCompletedState = !item.completed;
-            const userDoc = await db.collection('users').doc(this.currentUser.uid).get();
-            const userName = userDoc.exists ? userDoc.data().name : 'User';
+    const userDoc = await db.collection('users').doc(this.currentUser.uid).get();
+    const userName = userDoc.exists ? userDoc.data().name : 'User';
 
-            try {
-                await db.collection('items').doc(id).update({
-                    completed: newCompletedState,
-                    completedBy: newCompletedState ? this.currentUser.uid : null,
-                    completedAt: newCompletedState ? firebase.firestore.FieldValue.serverTimestamp() : null,
-                    completedByName: newCompletedState ? userName : null
-                });
-            } catch (error) {
-                console.error('Error updating item:', error);
-                Utils.showToast('Error updating item: ' + error.message);
-            }
+    const itemData = {
+        name,
+        quantity,
+        unit,
+        category,
+        isUrgent,
+        isRecurring,
+        completed: false,
+        addedBy: this.currentUser.uid,
+        addedByName: userName,
+        familyId: this.currentFamily,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        price: null,
+        purchaseDate: null,
+        store: null,
+        claimedBy: null,
+        claimedByName: null,
+        claimedAt: null
+    };
+
+    try {
+        const docRef = await db.collection('items').add(itemData);
+        
+        // Send notification for new item
+        if (notificationManager && isUrgent) {
+            await notificationManager.notifyUrgentItem(itemData, userName);
+        } else if (notificationManager) {
+            await notificationManager.notifyItemAdded(itemData, userName);
         }
+        
+        // Reset form
+        if (itemInput) itemInput.value = '';
+        if (qtyInput) qtyInput.value = '1';
+        if (unitSelect) unitSelect.value = 'pcs';
+        if (categorySelect) categorySelect.value = 'uncategorized';
+        if (urgentCheckbox) urgentCheckbox.checked = false;
+        if (repeatCheckbox) repeatCheckbox.checked = false;
+        if (itemInput) itemInput.focus();
+        
+        Utils.showToast('Item added to list successfully');
+    } catch (error) {
+        console.error('Error adding item:', error);
+        Utils.showToast('Error adding item: ' + error.message);
     }
+}
 
-    async claimItem(id) {
+async toggleItem(id) {
+    const item = this.groceryItems.find(item => item.id === id);
+    if (item) {
+        const newCompletedState = !item.completed;
         const userDoc = await db.collection('users').doc(this.currentUser.uid).get();
         const userName = userDoc.exists ? userDoc.data().name : 'User';
 
         try {
             await db.collection('items').doc(id).update({
-                claimedBy: this.currentUser.uid,
-                claimedByName: userName,
-                claimedAt: firebase.firestore.FieldValue.serverTimestamp()
+                completed: newCompletedState,
+                completedBy: newCompletedState ? this.currentUser.uid : null,
+                completedAt: newCompletedState ? firebase.firestore.FieldValue.serverTimestamp() : null,
+                completedByName: newCompletedState ? userName : null
             });
-            Utils.showToast('Item claimed');
+
+            // Send notification when item is completed
+            if (newCompletedState && notificationManager) {
+                await notificationManager.notifyItemCompleted(item, userName);
+            }
         } catch (error) {
-            console.error('Error claiming item:', error);
-            Utils.showToast('Error claiming item: ' + error.message);
+            console.error('Error updating item:', error);
+            Utils.showToast('Error updating item: ' + error.message);
         }
     }
+}
+
+async claimItem(id) {
+    const item = this.groceryItems.find(item => item.id === id);
+    const userDoc = await db.collection('users').doc(this.currentUser.uid).get();
+    const userName = userDoc.exists ? userDoc.data().name : 'User';
+
+    try {
+        await db.collection('items').doc(id).update({
+            claimedBy: this.currentUser.uid,
+            claimedByName: userName,
+            claimedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        // Send notification when item is claimed
+        if (notificationManager) {
+            await notificationManager.notifyItemClaimed(item, userName);
+        }
+        
+        Utils.showToast('Item claimed');
+    } catch (error) {
+        console.error('Error claiming item:', error);
+        Utils.showToast('Error claiming item: ' + error.message);
+    }
+}
 
     async unclaimItem(id) {
         try {
