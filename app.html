@@ -186,6 +186,70 @@
                         <div id="pending-items"></div>
                     </div>
 
+                    <!-- Enhanced Grocery Items with CRUD -->
+<div class="grocery-item" data-id="{{id}}">
+    <div class="d-flex justify-content-between align-items-start">
+        <div class="d-flex align-items-center gap-3" style="flex: 1;">
+            <div class="checkbox item-checkbox {{completed ? 'checked' : ''}}">
+                {{completed ? '✓' : ''}}
+            </div>
+            <div style="flex: 1;">
+                <div class="item-name">
+                    {{name}}
+                    {{#isUrgent}}<span class="urgent-badge"><i class="fas fa-bolt"></i> URGENT</span>{{/isUrgent}}
+                    {{#isClaimed}}<span class="claimed-badge"><i class="fas fa-cart-plus"></i> CLAIMED</span>{{/isClaimed}}
+                    {{#isRecurring}}<span class="recurring-badge"><i class="fas fa-redo"></i> RECURRING</span>{{/isRecurring}}
+                    {{#price}}<span class="item-price-added">₹{{price}}</span>{{/price}}
+                </div>
+                <div class="item-meta">
+                    <span class="item-category">{{categoryLabel}}</span>
+                    <span class="item-qty">{{quantity}} {{unit}}</span>
+                    {{#store}}<span class="item-store"><i class="fas fa-store"></i> {{store}} • {{formattedDate}}</span>{{/store}}
+                    <span class="item-added-by">
+                        <div class="user-avatar">{{addedByNameInitial}}</div>
+                        Added by {{addedByName}}
+                    </span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Enhanced CRUD Actions -->
+        <div class="crud-actions">
+            {{^completed}}
+                {{#isClaimed}}
+                    {{#isClaimedByCurrentUser}}
+                    <button class="action-btn outline unclaim-btn" title="Unclaim Item">
+                        <i class="fas fa-times"></i> Unclaim
+                    </button>
+                    {{else}}
+                    <button class="action-btn outline" disabled title="Claimed by {{claimedByName}}">
+                        <i class="fas fa-lock"></i> Claimed
+                    </button>
+                    {{/isClaimedByCurrentUser}}
+                {{else}}
+                <button class="action-btn secondary claim-btn" title="I'll Buy This">
+                    <i class="fas fa-cart-plus"></i> I'll Buy
+                </button>
+                {{/isClaimed}}
+            {{/completed}}
+            
+            {{#isEditable}}
+            <div class="dropdown">
+                <button class="action-btn outline dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    <i class="fas fa-ellipsis-h"></i>
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="#" onclick="app.editItem('{{id}}')"><i class="fas fa-edit"></i> Edit</a></li>
+                    <li><a class="dropdown-item" href="#" onclick="app.duplicateItem('{{id}}')"><i class="fas fa-copy"></i> Duplicate</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item text-danger" href="#" onclick="app.deleteItem('{{id}}')"><i class="fas fa-trash"></i> Delete</a></li>
+                </ul>
+            </div>
+            {{/isEditable}}
+        </div>
+    </div>
+</div>
+
                     <div class="list-section completed-section">
                         <h2 class="section-title">
                             ✅ Purchased Items 
@@ -232,6 +296,59 @@
                         </button>
                     </div>
                 </div>
+
+                <!-- Enhanced Purchases Tab -->
+<div id="purchasesTab" class="tab-content">
+    <div class="card">
+        <h2 class="section-title"><i class="fas fa-receipt me-2"></i>Purchase Management</h2>
+        
+        <!-- CRUD Operations -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="crud-actions">
+                <button class="crud-btn edit-btn" onclick="app.bulkEdit()">
+                    <i class="fas fa-edit"></i> Bulk Edit
+                </button>
+                <button class="crud-btn delete-btn" onclick="app.bulkDelete()">
+                    <i class="fas fa-trash"></i> Bulk Delete
+                </button>
+            </div>
+            <button class="btn primary" onclick="app.exportPurchases()">
+                <i class="fas fa-file-export"></i> Export CSV
+            </button>
+        </div>
+
+        <!-- Beautiful Table -->
+        <div class="table-responsive">
+            <table class="purchases-table">
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" id="selectAll"></th>
+                        <th><i class="fas fa-shopping-basket"></i> Item</th>
+                        <th><i class="fas fa-weight"></i> Quantity</th>
+                        <th><i class="fas fa-tag"></i> Price</th>
+                        <th><i class="fas fa-store"></i> Store</th>
+                        <th><i class="fas fa-calendar"></i> Date</th>
+                        <th><i class="fas fa-user"></i> Buyer</th>
+                        <th><i class="fas fa-cogs"></i> Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="purchasesTableBody">
+                    <!-- Table rows will be populated dynamically -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Empty State with Lottie -->
+        <div id="purchasesEmptyState" class="empty-state" style="display: none;">
+            <div class="lottie-animation" id="emptyPurchasesLottie"></div>
+            <h4>No Purchases Yet</h4>
+            <p>Start adding prices to your purchased items to see them here</p>
+            <button class="btn primary mt-3" onclick="app.switchTab('list')">
+                <i class="fas fa-plus"></i> Add Items
+            </button>
+        </div>
+    </div>
+</div>
 
                 <div class="card">
                     <h3>📈 Monthly Purchase Summary</h3>
