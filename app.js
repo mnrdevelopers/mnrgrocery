@@ -110,6 +110,15 @@ async createUserDocument() {
         if (joinFamilyBtn) joinFamilyBtn.addEventListener('click', () => this.joinFamily());
         if (logoutFromSetup) logoutFromSetup.addEventListener('click', () => this.logoutUser());
 
+        //Notifications
+        const enableNotificationsBtn = document.getElementById('enableNotificationsBtn');
+const disableNotificationsBtn = document.getElementById('disableNotificationsBtn');
+const testNotificationBtn = document.getElementById('testNotificationBtn');
+
+if (enableNotificationsBtn) enableNotificationsBtn.addEventListener('click', () => this.enableNotifications());
+if (disableNotificationsBtn) disableNotificationsBtn.addEventListener('click', () => this.disableNotifications());
+if (testNotificationBtn) testNotificationBtn.addEventListener('click', () => this.testNotification());
+
         // Main app
         const addItemBtn = document.getElementById('addItemBtn');
         const itemInput = document.getElementById('itemInput');
@@ -217,6 +226,33 @@ async createUserDocument() {
         }
     }
 
+async enableNotifications() {
+    if (notificationManager) {
+        const enabled = await notificationManager.enableNotifications();
+        if (enabled) {
+            Utils.showToast('Push notifications enabled!');
+        }
+    }
+}
+
+async disableNotifications() {
+    if (notificationManager) {
+        await notificationManager.disableNotifications();
+    }
+}
+
+async testNotification() {
+    if (notificationManager) {
+        notificationManager.showLocalNotification({
+            notification: {
+                title: '🔔 Test Notification',
+                body: 'This is a test notification from FamilyGrocer!',
+                icon: '/icons/icon-192x192.png'
+            }
+        });
+    }
+}
+    
 async createFamily() {
     const familyCode = Utils.generateFamilyCode();
     
