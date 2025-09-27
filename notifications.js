@@ -86,7 +86,7 @@ class NotificationManager {
             
             // Get FCM token
             const token = await messaging.getToken({
-                vapidKey: 'YOUR_VAPID_KEY_HERE' // You can generate this in Firebase Console
+                vapidKey: 'BIouHaUkC-P9N291LKU4ieL8NMMDYDzIovWnXYAs2XyaqxOHS8YFWAcXBBSBmU-5rYTyjHDhR5UqWGS0BoWvRD4' // You can generate this in Firebase Console
             });
 
             if (token) {
