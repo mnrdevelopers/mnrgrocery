@@ -18,6 +18,11 @@ class GroceryApp {
     async init() {
         await this.checkAuthState();
         this.setupEventListeners();
+    
+        // Initialize notification manager after app is ready
+        if (window.notificationManager) {
+            await window.notificationManager.init();
+        }
     }
 
     async checkAuthState() {
@@ -154,6 +159,12 @@ async createUserDocument() {
         if (purchaseItemSelect) purchaseItemSelect.addEventListener('change', () => this.updatePurchaseForm());
         if (addPriceBtn) addPriceBtn.addEventListener('click', () => this.switchTab('purchases'));
 
+        // Notification settings - FIXED THIS LINE
+        const notificationSettingsBtn = document.getElementById('notificationSettingsBtn');
+        if (notificationSettingsBtn) {
+            notificationSettingsBtn.addEventListener('click', () => this.showNotificationSettings());
+        }
+
         // Actions
         const copyFamilyCodeBtn = document.getElementById('copyFamilyCode');
         const changeNameBtn = document.getElementById('changeNameBtn');
@@ -216,73 +227,6 @@ async createUserDocument() {
             loadingScreen.style.display = 'none';
         }
     }
-
-    // Add to setupEventListeners() in app.js
-const notificationSettingsBtn = document.getElementById('notificationSettingsBtn');
-if (notificationSettingsBtn) {
-    notificationSettingsBtn.addEventListener('click', () => this.showNotificationSettings());
-}
-
-// Add new method to GroceryApp class
-showNotificationSettings() {
-    if (!notificationManager) return;
-    
-    const settings = notificationManager.getSettings();
-    
-    // Update switch states
-    document.getElementById('enableNotifications').checked = settings.notifications;
-    document.getElementById('enableSound').checked = settings.sound;
-    document.getElementById('notifyItemAdded').checked = settings.itemAdded;
-    document.getElementById('notifyItemCompleted').checked = settings.itemCompleted;
-    document.getElementById('notifyPriceAdded').checked = settings.priceAdded;
-    document.getElementById('notifyFamilyActivity').checked = settings.familyActivity;
-    
-    // Show modal
-    const modal = new bootstrap.Modal(document.getElementById('notificationSettingsModal'));
-    modal.show();
-    
-    // Add event listeners for the modal
-    this.setupNotificationModalEvents();
-}
-
-setupNotificationModalEvents() {
-    const testBtn = document.getElementById('testNotificationBtn');
-    const saveBtn = document.getElementById('saveNotificationSettings');
-    
-    if (testBtn) {
-        testBtn.addEventListener('click', () => {
-            if (notificationManager) {
-                notificationManager.testNotification();
-            }
-        });
-    }
-    
-    if (saveBtn) {
-        saveBtn.addEventListener('click', () => {
-            this.saveNotificationSettings();
-        });
-    }
-}
-
-saveNotificationSettings() {
-    if (!notificationManager) return;
-    
-    const newSettings = {
-        notifications: document.getElementById('enableNotifications').checked,
-        sound: document.getElementById('enableSound').checked,
-        itemAdded: document.getElementById('notifyItemAdded').checked,
-        itemCompleted: document.getElementById('notifyItemCompleted').checked,
-        priceAdded: document.getElementById('notifyPriceAdded').checked,
-        familyActivity: document.getElementById('notifyFamilyActivity').checked
-    };
-    
-    notificationManager.updateSettings(newSettings);
-    Utils.showToast('Notification settings saved!');
-    
-    // Close modal
-    const modal = bootstrap.Modal.getInstance(document.getElementById('notificationSettingsModal'));
-    modal.hide();
-}
 
 async createFamily() {
     const familyCode = Utils.generateFamilyCode();
@@ -541,8 +485,6 @@ async createFamily() {
             notificationManager.showItemAddedNotification(name, userName);
         }
         
-        // Reset form and show success
-        if (itemInput) itemInput.value = '';
             
             // Reset form
             if (itemInput) itemInput.value = '';
@@ -598,10 +540,12 @@ async createFamily() {
         });
 
         // Show family activity notification
-        if (notificationManager) {
-            const item = this.groceryItems.find(item => item.id === id);
-            notificationManager.showFamilyActivityNotification(userName, `claimed "${item.name}"`);
-        }
+            if (window.notificationManager) {
+                const item = this.groceryItems.find(item => item.id === id);
+                if (item) {
+                    window.notificationManager.showFamilyActivityNotification(userName, `claimed "${item.name}"`);
+                }
+            }
 
         Utils.showToast('Item claimed');
     } catch (error) {
@@ -609,6 +553,84 @@ async createFamily() {
         Utils.showToast('Error claiming item: ' + error.message);
     }
 }
+    // Add notification settings methods
+    showNotificationSettings() {
+        if (!window.notificationManager) {
+            Utils.showToast('Notification system not available');
+            return;
+        }
+        
+        const settings = window.notificationManager.getSettings();
+        
+        // Update switch states
+        const enableNotifications = document.getElementById('enableNotifications');
+        const enableSound = document.getElementById('enableSound');
+        const notifyItemAdded = document.getElementById('notifyItemAdded');
+        const notifyItemCompleted = document.getElementById('notifyItemCompleted');
+        const notifyPriceAdded = document.getElementById('notifyPriceAdded');
+        const notifyFamilyActivity = document.getElementById('notifyFamilyActivity');
+        
+        if (enableNotifications) enableNotifications.checked = settings.notifications;
+        if (enableSound) enableSound.checked = settings.sound;
+        if (notifyItemAdded) notifyItemAdded.checked = settings.itemAdded;
+        if (notifyItemCompleted) notifyItemCompleted.checked = settings.itemCompleted;
+        if (notifyPriceAdded) notifyPriceAdded.checked = settings.priceAdded;
+        if (notifyFamilyActivity) notifyFamilyActivity.checked = settings.familyActivity;
+        
+        // Show modal using Bootstrap
+        const modalElement = document.getElementById('notificationSettingsModal');
+        if (modalElement) {
+            const modal = new bootstrap.Modal(modalElement);
+            modal.show();
+            
+            // Setup modal events
+            this.setupNotificationModalEvents();
+        }
+    }
+
+    setupNotificationModalEvents() {
+        const testBtn = document.getElementById('testNotificationBtn');
+        const saveBtn = document.getElementById('saveNotificationSettings');
+        
+        if (testBtn) {
+            testBtn.addEventListener('click', () => {
+                if (window.notificationManager) {
+                    window.notificationManager.testNotification();
+                }
+            });
+        }
+        
+        if (saveBtn) {
+            saveBtn.addEventListener('click', () => {
+                this.saveNotificationSettings();
+            });
+        }
+    }
+
+    saveNotificationSettings() {
+        if (!window.notificationManager) return;
+        
+        const newSettings = {
+            notifications: document.getElementById('enableNotifications').checked,
+            sound: document.getElementById('enableSound').checked,
+            itemAdded: document.getElementById('notifyItemAdded').checked,
+            itemCompleted: document.getElementById('notifyItemCompleted').checked,
+            priceAdded: document.getElementById('notifyPriceAdded').checked,
+            familyActivity: document.getElementById('notifyFamilyActivity').checked
+        };
+        
+        window.notificationManager.updateSettings(newSettings);
+        Utils.showToast('Notification settings saved!');
+        
+        // Close modal
+        const modalElement = document.getElementById('notificationSettingsModal');
+        if (modalElement) {
+            const modal = bootstrap.Modal.getInstance(modalElement);
+            if (modal) {
+                modal.hide();
+            }
+        }
+    }
 
     async unclaimItem(id) {
         try {
@@ -676,10 +698,13 @@ async createFamily() {
                 completedByName: userName
             });
 
-            // Show notification
-        if (notificationManager) {
-            notificationManager.showPriceAddedNotification(item.name, price);
-        }
+             // Show notification
+            if (window.notificationManager) {
+                const item = this.groceryItems.find(item => item.id === itemId);
+                if (item) {
+                    window.notificationManager.showPriceAddedNotification(item.name, price);
+                }
+            }
 
             // Reset purchase form
             if (purchasePrice) purchasePrice.value = '';
