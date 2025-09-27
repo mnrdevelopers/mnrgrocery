@@ -168,18 +168,19 @@ class GroceryApp {
         }
     }
 
- async createFamily() {
+async createFamily() {
     const familyCode = Utils.generateFamilyCode();
     
-    // Get user data to use their name
-    let userName = 'My';
+    console.log('Creating family with code:', familyCode);
+
+    let userName = 'User';
     try {
         const userDoc = await db.collection('users').doc(this.currentUser.uid).get();
         if (userDoc.exists && userDoc.data().name) {
             userName = userDoc.data().name;
         }
     } catch (error) {
-        console.error('Error getting user data:', error);
+        console.error('Error getting user name:', error);
     }
 
     const familyData = {
@@ -193,8 +194,12 @@ class GroceryApp {
     Utils.showToast('Creating family...');
 
     try {
+        console.log('Creating family document...');
+        
         // Create family document
         await db.collection('families').doc(familyCode).set(familyData);
+        
+        console.log('Updating user document...');
         
         // Update user's familyId
         await db.collection('users').doc(this.currentUser.uid).update({
@@ -207,19 +212,19 @@ class GroceryApp {
         Utils.showToast(`Family created! Code: ${familyCode}`);
     } catch (error) {
         console.error('Error creating family:', error);
+        console.error('Error code:', error.code);
         
-        let errorMessage = 'Error creating family';
+        let errorMessage = 'Error creating family: ' + error.message;
+        
         if (error.code === 'permission-denied') {
-            errorMessage = 'Permission denied. Please check Firebase security rules.';
-        } else {
-            errorMessage = error.message;
+            errorMessage = 'Permission denied. Please check Firestore rules.';
         }
         
         Utils.showToast(errorMessage);
     }
 }
 
-   async joinFamily() {
+  async joinFamily() {
     const familyCodeInput = document.getElementById('familyCodeInput');
     const familyCode = familyCodeInput ? familyCodeInput.value.toUpperCase().trim() : '';
     
@@ -236,14 +241,19 @@ class GroceryApp {
     Utils.showToast('Joining family...');
 
     try {
+        console.log('Attempting to join family:', familyCode);
+        
         // First, check if family exists
         const familyDoc = await db.collection('families').doc(familyCode).get();
+        console.log('Family document exists:', familyDoc.exists);
         
         if (!familyDoc.exists) {
-            throw new Error('Family not found. Check the code and try again.');
+            Utils.showToast('Family not found. Check the code and try again.');
+            return;
         }
 
         const familyData = familyDoc.data();
+        console.log('Family data:', familyData);
         
         // Check if user is already a member
         if (familyData.members && familyData.members.includes(this.currentUser.uid)) {
@@ -251,11 +261,15 @@ class GroceryApp {
             return;
         }
 
+        console.log('Updating family members...');
+        
         // Update family members array
         await db.collection('families').doc(familyCode).update({
             members: firebase.firestore.FieldValue.arrayUnion(this.currentUser.uid)
         });
 
+        console.log('Updating user document...');
+        
         // Update user's familyId
         await db.collection('users').doc(this.currentUser.uid).update({
             familyId: familyCode
@@ -270,15 +284,16 @@ class GroceryApp {
         if (familyCodeInput) familyCodeInput.value = '';
         
     } catch (error) {
-        console.error('Error joining family:', error);
+        console.error('Full error details:', error);
+        console.error('Error code:', error.code);
+        console.error('Error message:', error.message);
         
-        let errorMessage = 'Error joining family';
+        let errorMessage = 'Error joining family: ' + error.message;
+        
         if (error.code === 'permission-denied') {
-            errorMessage = 'Permission denied. Please check Firebase security rules.';
+            errorMessage = 'Permission denied. Please check that Firestore rules allow writes.';
         } else if (error.code === 'not-found') {
-            errorMessage = 'Family not found. Check the code and try again.';
-        } else {
-            errorMessage = error.message;
+            errorMessage = 'Family not found. Please check the family code.';
         }
         
         Utils.showToast(errorMessage);
