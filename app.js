@@ -468,6 +468,14 @@ async createFamily() {
 
         try {
             await db.collection('items').add(itemData);
+
+             // Show notification to other family members
+        if (notificationManager) {
+            notificationManager.showItemAddedNotification(name, userName);
+        }
+        
+        // Reset form and show success
+        if (itemInput) itemInput.value = '';
             
             // Reset form
             if (itemInput) itemInput.value = '';
@@ -485,43 +493,55 @@ async createFamily() {
         }
     }
 
-    async toggleItem(id) {
-        const item = this.groceryItems.find(item => item.id === id);
-        if (item) {
-            const newCompletedState = !item.completed;
-            const userDoc = await db.collection('users').doc(this.currentUser.uid).get();
-            const userName = userDoc.exists ? userDoc.data().name : 'User';
-
-            try {
-                await db.collection('items').doc(id).update({
-                    completed: newCompletedState,
-                    completedBy: newCompletedState ? this.currentUser.uid : null,
-                    completedAt: newCompletedState ? firebase.firestore.FieldValue.serverTimestamp() : null,
-                    completedByName: newCompletedState ? userName : null
-                });
-            } catch (error) {
-                console.error('Error updating item:', error);
-                Utils.showToast('Error updating item: ' + error.message);
-            }
-        }
-    }
-
-    async claimItem(id) {
+   async toggleItem(id) {
+    const item = this.groceryItems.find(item => item.id === id);
+    if (item) {
+        const newCompletedState = !item.completed;
         const userDoc = await db.collection('users').doc(this.currentUser.uid).get();
         const userName = userDoc.exists ? userDoc.data().name : 'User';
 
         try {
             await db.collection('items').doc(id).update({
-                claimedBy: this.currentUser.uid,
-                claimedByName: userName,
-                claimedAt: firebase.firestore.FieldValue.serverTimestamp()
+                completed: newCompletedState,
+                completedBy: newCompletedState ? this.currentUser.uid : null,
+                completedAt: newCompletedState ? firebase.firestore.FieldValue.serverTimestamp() : null,
+                completedByName: newCompletedState ? userName : null
             });
-            Utils.showToast('Item claimed');
+
+            // Show notification
+            if (newCompletedState && notificationManager) {
+                notificationManager.showItemCompletedNotification(item.name, userName);
+            }
         } catch (error) {
-            console.error('Error claiming item:', error);
-            Utils.showToast('Error claiming item: ' + error.message);
+            console.error('Error updating item:', error);
+            Utils.showToast('Error updating item: ' + error.message);
         }
     }
+}
+
+  async claimItem(id) {
+    const userDoc = await db.collection('users').doc(this.currentUser.uid).get();
+    const userName = userDoc.exists ? userDoc.data().name : 'User';
+
+    try {
+        await db.collection('items').doc(id).update({
+            claimedBy: this.currentUser.uid,
+            claimedByName: userName,
+            claimedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        // Show family activity notification
+        if (notificationManager) {
+            const item = this.groceryItems.find(item => item.id === id);
+            notificationManager.showFamilyActivityNotification(userName, `claimed "${item.name}"`);
+        }
+
+        Utils.showToast('Item claimed');
+    } catch (error) {
+        console.error('Error claiming item:', error);
+        Utils.showToast('Error claiming item: ' + error.message);
+    }
+}
 
     async unclaimItem(id) {
         try {
@@ -588,6 +608,11 @@ async createFamily() {
                 completedBy: this.currentUser.uid,
                 completedByName: userName
             });
+
+            // Show notification
+        if (notificationManager) {
+            notificationManager.showPriceAddedNotification(item.name, price);
+        }
 
             // Reset purchase form
             if (purchasePrice) purchasePrice.value = '';
