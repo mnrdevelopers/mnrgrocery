@@ -363,7 +363,7 @@ button:disabled:hover {
 
 .stats {
     display: flex;
-    gap: 20px;
+    gap: 15px;
     font-size: 0.85rem;
 }
 
@@ -372,18 +372,30 @@ button:disabled:hover {
     flex-direction: column;
     align-items: center;
     text-align: center;
+    background: rgba(255, 255, 255, 0.15);
+    padding: 12px 15px;
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    min-width: 80px;
 }
 
 .stat-value {
-    font-weight: 700;
-    font-size: 1.2rem;
-    margin-bottom: 2px;
+    font-weight: 800;
+    font-size: 1.4rem;
+    margin-bottom: 4px;
+    background: linear-gradient(135deg, #fff 0%, #e0f2fe 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .stat-label {
     font-size: 0.75rem;
     opacity: 0.9;
-    font-weight: 500;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .family-members {
@@ -1317,17 +1329,45 @@ button:disabled:hover {
     background: rgba(255, 255, 255, 0.2);
     border: none;
     color: white;
-    font-size: 1.4rem;
+    font-size: 1.1rem;
     cursor: pointer;
-    padding: 10px;
+    padding: 12px;
     border-radius: 50%;
     transition: all 0.3s ease;
     backdrop-filter: blur(10px);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    width: 45px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .logout-btn:hover {
     background: rgba(255, 255, 255, 0.3);
-    transform: scale(1.1);
+    transform: scale(1.1) rotate(90deg);
+    border-color: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.user-welcome {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 8px 15px;
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+}
+
+.welcome-text {
+    font-size: 0.85rem;
+    opacity: 0.8;
+}
+
+.username {
+    font-weight: 700;
+    font-size: 0.9rem;
 }
 
 /* Divider */
