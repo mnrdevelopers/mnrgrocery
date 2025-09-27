@@ -177,63 +177,57 @@ class AuthManager {
         }
     }
 
-    async signup() {
-        const name = document.getElementById('signupName')?.value.trim();
-        const email = document.getElementById('signupEmail')?.value.trim();
-        const password = document.getElementById('signupPassword')?.value.trim();
-        
-        if (!name || !email || !password) {
-            Utils.showToast('Please fill all fields');
-            return;
-        }
-
-        if (!Utils.validateEmail(email)) {
-            Utils.showToast('Please enter a valid email address');
-            return;
-        }
-
-        if (!Utils.validatePassword(password)) {
-            Utils.showToast('Password must be at least 6 characters');
-            return;
-        }
-
-        Utils.showToast('Creating account...');
-
-        try {
-            const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-            const user = userCredential.user;
-            
-            // Save user data to Firestore
-            await db.collection('users').doc(user.uid).set({
-                name: name,
-                email: email,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                preferences: {
-                    notifications: true,
-                    budget: 5000
-                }
-            });
-
-            Utils.showToast('Account created successfully!');
-        } catch (error) {
-            console.error('Signup error:', error);
-            let message = 'Sign up failed';
-            
-            switch (error.code) {
-                case 'auth/email-already-in-use':
-                    message = 'Email already in use';
-                    break;
-                case 'auth/weak-password':
-                    message = 'Password is too weak';
-                    break;
-                default:
-                    message = error.message;
-            }
-            
-            Utils.showToast(message);
-        }
+   async signup() {
+    const name = document.getElementById('signupName')?.value.trim();
+    const email = document.getElementById('signupEmail')?.value.trim();
+    const password = document.getElementById('signupPassword')?.value.trim();
+    
+    if (!name || !email || !password) {
+        Utils.showToast('Please fill all fields');
+        return;
     }
 
+    if (!Utils.validateEmail(email)) {
+        Utils.showToast('Please enter a valid email address');
+        return;
+    }
+
+    if (!Utils.validatePassword(password)) {
+        Utils.showToast('Password must be at least 6 characters');
+        return;
+    }
+
+    Utils.showToast('Creating account...');
+
+    try {
+        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+        const user = userCredential.user;
+        
+        // Save user data to Firestore with familyId
+        await db.collection('users').doc(user.uid).set({
+            name: name,
+            email: email,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            preferences: {
+                notifications: true,
+                budget: 5000
+            },
+            familyId: null  // Important: Initialize as null
+        });
+
+        Utils.showToast('Account created successfully! Redirecting to family setup...');
+        
+        // Redirect to app for family setup
+        setTimeout(() => {
+            window.location.href = 'app.html';
+        }, 1500);
+        
+    } catch (error) {
+        console.error('Signup error:', error);
+        Utils.showToast('Sign up failed: ' + error.message);
+    }
+}
+    
   async signInWithGoogle(context) {
     const provider = new firebase.auth.GoogleAuthProvider();
     
