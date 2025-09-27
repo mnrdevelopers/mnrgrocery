@@ -1,4 +1,4 @@
-// notifications.js - In-app notification system
+// notifications.js - Enhanced for multi-device notifications
 class NotificationManager {
     constructor() {
         this.notificationContainer = null;
@@ -11,16 +11,87 @@ class NotificationManager {
             priceAdded: true,
             familyActivity: true
         };
+        this.currentUserId = null;
+        this.currentFamilyId = null;
+        this.itemListener = null;
     }
 
     async init() {
         this.createNotificationContainer();
         this.createNotificationSound();
         await this.loadUserPreferences();
+        this.setupFirebaseListeners();
+    }
+
+    setUserContext(userId, familyId) {
+        this.currentUserId = userId;
+        this.currentFamilyId = familyId;
+    }
+
+    setupFirebaseListeners() {
+        if (!this.currentFamilyId) return;
+
+        // Listen for item changes across the family
+        this.itemListener = db.collection('items')
+            .where('familyId', '==', this.currentFamilyId)
+            .onSnapshot((snapshot) => {
+                snapshot.docChanges().forEach((change) => {
+                    if (change.type === 'added') {
+                        this.handleItemAdded(change.doc.data(), change.doc.id);
+                    } else if (change.type === 'modified') {
+                        this.handleItemModified(change.doc.data(), change.doc.id, change.doc.previousData());
+                    }
+                });
+            }, (error) => {
+                console.error('Error listening to items:', error);
+            });
+    }
+
+    handleItemAdded(itemData, itemId) {
+        // Don't show notification if user added the item themselves
+        if (itemData.addedBy === this.currentUserId) return;
+        
+        if (!itemData.completed && this.userPreferences.itemAdded) {
+            this.showItemAddedNotification(itemData.name, itemData.addedByName || 'Family Member');
+        }
+    }
+
+    handleItemModified(newData, itemId, oldData) {
+        // Don't show notification if user modified the item themselves
+        if (newData.completedBy === this.currentUserId || 
+            newData.claimedBy === this.currentUserId) return;
+
+        // Check if item was just completed
+        if (newData.completed && !oldData.completed && this.userPreferences.itemCompleted) {
+            this.showItemCompletedNotification(
+                newData.name, 
+                newData.completedByName || 'Family Member'
+            );
+        }
+
+        // Check if price was added
+        if (newData.price && !oldData.price && this.userPreferences.priceAdded) {
+            this.showPriceAddedNotification(newData.name, newData.price);
+        }
+
+        // Check if item was claimed
+        if (newData.claimedBy && !oldData.claimedBy && this.userPreferences.familyActivity) {
+            this.showFamilyActivityNotification(
+                newData.claimedByName || 'Family Member', 
+                `claimed "${newData.name}"`
+            );
+        }
+
+        // Check if item was unclaimed
+        if (!newData.claimedBy && oldData.claimedBy && this.userPreferences.familyActivity) {
+            this.showFamilyActivityNotification(
+                oldData.claimedByName || 'Family Member', 
+                `unclaimed "${oldData.name}"`
+            );
+        }
     }
 
     createNotificationContainer() {
-        // Check if container already exists
         if (document.getElementById('notificationContainer')) {
             this.notificationContainer = document.getElementById('notificationContainer');
             return;
@@ -33,30 +104,27 @@ class NotificationManager {
     }
 
     createNotificationSound() {
-        // Simple notification sound using HTML5 audio (fallback)
+        // Simple beep sound
         this.notificationSound = new Audio();
-        // You can add a subtle notification sound file here if needed
     }
 
     async loadUserPreferences() {
         try {
-            // Wait for app to be available
-            if (typeof app !== 'undefined' && app.currentUser) {
-                const userDoc = await db.collection('users').doc(app.currentUser.uid).get();
+            if (this.currentUserId) {
+                const userDoc = await db.collection('users').doc(this.currentUserId).get();
                 if (userDoc.exists && userDoc.data().preferences) {
                     this.userPreferences = { ...this.userPreferences, ...userDoc.data().preferences };
                 }
             }
         } catch (error) {
-            console.log('Could not load user preferences:', error);
-            // Use default preferences
+            console.log('Using default notification preferences');
         }
     }
 
     async saveUserPreferences() {
         try {
-            if (typeof app !== 'undefined' && app.currentUser) {
-                await db.collection('users').doc(app.currentUser.uid).update({
+            if (this.currentUserId) {
+                await db.collection('users').doc(this.currentUserId).update({
                     preferences: this.userPreferences
                 });
             }
@@ -68,17 +136,18 @@ class NotificationManager {
     showNotification(title, message, type = 'info', duration = 5000) {
         if (!this.userPreferences.notifications) return;
 
-        // Ensure container exists
         if (!this.notificationContainer) {
             this.createNotificationContainer();
         }
 
         const notification = document.createElement('div');
         notification.className = `notification ${type}`;
+        
+        // Use FontAwesome icons if available, otherwise use emoji
+        const icon = this.getNotificationIcon(type);
+        
         notification.innerHTML = `
-            <div class="notification-icon">
-                ${this.getNotificationIcon(type)}
-            </div>
+            <div class="notification-icon">${icon}</div>
             <div class="notification-content">
                 <div class="notification-title">${title}</div>
                 <div class="notification-message">${message}</div>
@@ -88,21 +157,21 @@ class NotificationManager {
 
         this.notificationContainer.appendChild(notification);
 
-        // Add close event listener
+        // Add close event
         const closeBtn = notification.querySelector('.notification-close');
         closeBtn.addEventListener('click', () => {
             this.removeNotification(notification);
         });
 
-        // Trigger animation
+        // Animate in
         setTimeout(() => notification.classList.add('show'), 10);
 
-        // Play sound if enabled
+        // Play sound
         if (this.userPreferences.sound) {
             this.playNotificationSound();
         }
 
-        // Auto remove after duration
+        // Auto-remove
         if (duration > 0) {
             setTimeout(() => {
                 this.removeNotification(notification);
@@ -123,17 +192,28 @@ class NotificationManager {
     }
 
     getNotificationIcon(type) {
-        const icons = {
-            'success': '✓',
-            'error': '⚠',
-            'warning': '⚠',
-            'info': 'ℹ'
-        };
-        return icons[type] || icons.info;
+        // Check if FontAwesome is available
+        if (typeof FontAwesome !== 'undefined') {
+            const icons = {
+                'success': '<i class="fas fa-check-circle"></i>',
+                'error': '<i class="fas fa-exclamation-circle"></i>',
+                'warning': '<i class="fas fa-exclamation-triangle"></i>',
+                'info': '<i class="fas fa-info-circle"></i>'
+            };
+            return icons[type] || icons.info;
+        } else {
+            // Fallback to emoji
+            const icons = {
+                'success': '✅',
+                'error': '❌',
+                'warning': '⚠️',
+                'info': 'ℹ️'
+            };
+            return icons[type] || icons.info;
+        }
     }
 
     playNotificationSound() {
-        // Simple beep sound using Web Audio API
         try {
             const audioContext = new (window.AudioContext || window.webkitAudioContext)();
             const oscillator = audioContext.createOscillator();
@@ -153,98 +233,74 @@ class NotificationManager {
             oscillator.stop(audioContext.currentTime + 0.3);
             
         } catch (error) {
-            // Fallback: try to play HTML5 audio if available
-            if (this.notificationSound) {
-                this.notificationSound.play().catch(() => {
-                    // Silent fail if audio can't play
-                });
-            }
+            // Silent fail if audio context not supported
         }
     }
 
-    // Specific notification types
+    // Notification methods for specific events
     showItemAddedNotification(itemName, addedBy) {
-        if (!this.userPreferences.itemAdded) return;
         this.showNotification(
-            'New Item Added',
+            '🛒 New Item Added',
             `${addedBy} added "${itemName}" to the list`,
             'success',
-            3000
+            4000
         );
     }
 
     showItemCompletedNotification(itemName, completedBy) {
-        if (!this.userPreferences.itemCompleted) return;
         this.showNotification(
-            'Item Purchased',
+            '✅ Item Purchased',
             `${completedBy} purchased "${itemName}"`,
             'info',
-            3000
+            4000
         );
     }
 
     showPriceAddedNotification(itemName, price) {
-        if (!this.userPreferences.priceAdded) return;
         this.showNotification(
-            'Price Added',
+            '💰 Price Added',
             `₹${price} added for "${itemName}"`,
             'success',
-            3000
+            4000
         );
     }
 
     showFamilyActivityNotification(memberName, action) {
-        if (!this.userPreferences.familyActivity) return;
         this.showNotification(
-            'Family Activity',
+            '👨‍👩‍👧‍👦 Family Activity',
             `${memberName} ${action}`,
             'info',
-            3000
+            4000
         );
     }
 
-    showLowStockNotification(itemName) {
-        this.showNotification(
-            'Low Stock Alert',
-            `"${itemName}" is running low. Consider adding to your list.`,
-            'warning',
-            5000
-        );
-    }
-
-    // Test notification
+    // Test method
     testNotification() {
         this.showNotification(
-            'Test Notification',
-            'This is a test of the notification system. Everything is working correctly!',
+            '🔔 Test Notification',
+            'Notifications are working across all devices!',
             'success',
-            3000
+            4000
         );
     }
 
-    // Toggle notification settings
-    toggleNotificationSetting(setting) {
-        this.userPreferences[setting] = !this.userPreferences[setting];
-        this.saveUserPreferences();
-        return this.userPreferences[setting];
+    // Cleanup when leaving
+    cleanup() {
+        if (this.itemListener) {
+            this.itemListener();
+        }
     }
 
-    // Get current settings
+    // Settings management
     getSettings() {
         return { ...this.userPreferences };
     }
 
-    // Update settings
     updateSettings(newSettings) {
         this.userPreferences = { ...this.userPreferences, ...newSettings };
         this.saveUserPreferences();
     }
 }
 
-// Global notification manager instance
+// Global instance
 window.notificationManager = new NotificationManager();
-
-// Initialize when DOM is ready
-document.addEventListener('DOMContentLoaded', async () => {
-    await window.notificationManager.init();
-});
