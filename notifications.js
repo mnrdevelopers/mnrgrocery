@@ -11,16 +11,21 @@ class NotificationManager {
             priceAdded: true,
             familyActivity: true
         };
-        this.init();
     }
 
-    init() {
+    async init() {
         this.createNotificationContainer();
         this.createNotificationSound();
-        this.loadUserPreferences();
+        await this.loadUserPreferences();
     }
 
     createNotificationContainer() {
+        // Check if container already exists
+        if (document.getElementById('notificationContainer')) {
+            this.notificationContainer = document.getElementById('notificationContainer');
+            return;
+        }
+        
         this.notificationContainer = document.createElement('div');
         this.notificationContainer.className = 'notification-container';
         this.notificationContainer.id = 'notificationContainer';
@@ -28,10 +33,107 @@ class NotificationManager {
     }
 
     createNotificationSound() {
-        this.notificationSound = document.createElement('audio');
-        this.notificationSound.className = 'notification-sound';
-        
-        // Create a simple notification sound using Web Audio API
+        // Simple notification sound using HTML5 audio (fallback)
+        this.notificationSound = new Audio();
+        // You can add a subtle notification sound file here if needed
+    }
+
+    async loadUserPreferences() {
+        try {
+            // Wait for app to be available
+            if (typeof app !== 'undefined' && app.currentUser) {
+                const userDoc = await db.collection('users').doc(app.currentUser.uid).get();
+                if (userDoc.exists && userDoc.data().preferences) {
+                    this.userPreferences = { ...this.userPreferences, ...userDoc.data().preferences };
+                }
+            }
+        } catch (error) {
+            console.log('Could not load user preferences:', error);
+            // Use default preferences
+        }
+    }
+
+    async saveUserPreferences() {
+        try {
+            if (typeof app !== 'undefined' && app.currentUser) {
+                await db.collection('users').doc(app.currentUser.uid).update({
+                    preferences: this.userPreferences
+                });
+            }
+        } catch (error) {
+            console.error('Error saving notification preferences:', error);
+        }
+    }
+
+    showNotification(title, message, type = 'info', duration = 5000) {
+        if (!this.userPreferences.notifications) return;
+
+        // Ensure container exists
+        if (!this.notificationContainer) {
+            this.createNotificationContainer();
+        }
+
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.innerHTML = `
+            <div class="notification-icon">
+                ${this.getNotificationIcon(type)}
+            </div>
+            <div class="notification-content">
+                <div class="notification-title">${title}</div>
+                <div class="notification-message">${message}</div>
+            </div>
+            <button class="notification-close">&times;</button>
+        `;
+
+        this.notificationContainer.appendChild(notification);
+
+        // Add close event listener
+        const closeBtn = notification.querySelector('.notification-close');
+        closeBtn.addEventListener('click', () => {
+            this.removeNotification(notification);
+        });
+
+        // Trigger animation
+        setTimeout(() => notification.classList.add('show'), 10);
+
+        // Play sound if enabled
+        if (this.userPreferences.sound) {
+            this.playNotificationSound();
+        }
+
+        // Auto remove after duration
+        if (duration > 0) {
+            setTimeout(() => {
+                this.removeNotification(notification);
+            }, duration);
+        }
+
+        return notification;
+    }
+
+    removeNotification(notification) {
+        notification.classList.remove('show');
+        notification.classList.add('hide');
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    }
+
+    getNotificationIcon(type) {
+        const icons = {
+            'success': '✓',
+            'error': '⚠',
+            'warning': '⚠',
+            'info': 'ℹ'
+        };
+        return icons[type] || icons.info;
+    }
+
+    playNotificationSound() {
+        // Simple beep sound using Web Audio API
         try {
             const audioContext = new (window.AudioContext || window.webkitAudioContext)();
             const oscillator = audioContext.createOscillator();
@@ -51,89 +153,12 @@ class NotificationManager {
             oscillator.stop(audioContext.currentTime + 0.3);
             
         } catch (error) {
-            console.log('Web Audio API not supported, using fallback sound');
-        }
-    }
-
-    async loadUserPreferences() {
-        if (app && app.currentUser) {
-            try {
-                const userDoc = await db.collection('users').doc(app.currentUser.uid).get();
-                if (userDoc.exists && userDoc.data().preferences) {
-                    this.userPreferences = { ...this.userPreferences, ...userDoc.data().preferences };
-                }
-            } catch (error) {
-                console.error('Error loading notification preferences:', error);
-            }
-        }
-    }
-
-    async saveUserPreferences() {
-        if (app && app.currentUser) {
-            try {
-                await db.collection('users').doc(app.currentUser.uid).update({
-                    preferences: this.userPreferences
+            // Fallback: try to play HTML5 audio if available
+            if (this.notificationSound) {
+                this.notificationSound.play().catch(() => {
+                    // Silent fail if audio can't play
                 });
-            } catch (error) {
-                console.error('Error saving notification preferences:', error);
             }
-        }
-    }
-
-    showNotification(title, message, type = 'info', duration = 5000) {
-        if (!this.userPreferences.notifications) return;
-
-        const notification = document.createElement('div');
-        notification.className = `notification ${type}`;
-        notification.innerHTML = `
-            <div class="notification-icon">
-                ${this.getNotificationIcon(type)}
-            </div>
-            <div class="notification-content">
-                <div class="notification-title">${title}</div>
-                <div class="notification-message">${message}</div>
-            </div>
-            <button class="notification-close" onclick="this.parentElement.remove()">
-                <i class="fas fa-times"></i>
-            </button>
-        `;
-
-        this.notificationContainer.appendChild(notification);
-
-        // Trigger animation
-        setTimeout(() => notification.classList.add('show'), 10);
-
-        // Play sound if enabled
-        if (this.userPreferences.sound) {
-            this.playNotificationSound();
-        }
-
-        // Auto remove after duration
-        if (duration > 0) {
-            setTimeout(() => {
-                notification.classList.remove('show');
-                notification.classList.add('hide');
-                setTimeout(() => notification.remove(), 300);
-            }, duration);
-        }
-
-        return notification;
-    }
-
-    getNotificationIcon(type) {
-        const icons = {
-            'success': '<i class="fas fa-check-circle"></i>',
-            'error': '<i class="fas fa-exclamation-circle"></i>',
-            'warning': '<i class="fas fa-exclamation-triangle"></i>',
-            'info': '<i class="fas fa-info-circle"></i>'
-        };
-        return icons[type] || icons.info;
-    }
-
-    playNotificationSound() {
-        if (this.notificationSound) {
-            this.notificationSound.currentTime = 0;
-            this.notificationSound.play().catch(e => console.log('Sound play failed:', e));
         }
     }
 
@@ -216,9 +241,10 @@ class NotificationManager {
     }
 }
 
-// Initialize notification manager
-let notificationManager;
+// Global notification manager instance
+window.notificationManager = new NotificationManager();
 
-document.addEventListener('DOMContentLoaded', () => {
-    notificationManager = new NotificationManager();
+// Initialize when DOM is ready
+document.addEventListener('DOMContentLoaded', async () => {
+    await window.notificationManager.init();
 });
