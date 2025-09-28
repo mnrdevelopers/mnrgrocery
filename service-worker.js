@@ -5,8 +5,8 @@ const URLS_TO_CACHE = [
   '/app.css',    // Add your CSS file here
   '/app.js',     // Add your JS files here
   '/manifest.json',
-  '/icons/icon-192x192.png',
-  '/icons/icon-512x512.png'
+  '/icon.png',
+  '/icon.png'
 ];
 
 // Install service worker and cache files
