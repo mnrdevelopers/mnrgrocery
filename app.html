@@ -189,37 +189,9 @@
                 <button class="section-action" id="addPriceBtn" style="display: none;">Add Prices</button>
             </h2>
             <div id="pending-items"></div>
-        </div>
-
-        <div class="list-section completed-section">
-    <h2 class="section-title">
-        ✅ Purchased Items 
-        <span id="completed-badge">(0)</span>
-        <button class="section-action" id="toggleCompleted">Show Table</button>
-        <button class="section-action danger" id="clearCompleted" style="margin-left: 10px;">Clear All</button>
-    </h2>
-    
-    <div id="completed-items" class="purchased-items-table" style="display: none;">
-        <div class="table-header">
-            <div class="table-cell">Item Name</div>
-            <div class="table-cell">Quantity</div>
-            <div class="table-cell">Price</div>
-            <div class="table-cell">Store</div>
-            <div class="table-cell">Date</div>
-            <div class="table-cell">Added By</div>
-        </div>
-        <div class="table-body" id="completed-items-body">
-            <!-- Purchased items rows will be inserted here -->
-        </div>
-        <div id="completed-empty" class="empty-state" style="display: none;">
-            <div class="empty-state-icon">📦</div>
-            <p>No purchased items yet</p>
-         </div>
+       </div>
     </div>
-</div> <!-- close .list-section.completed-section -->
-</div> <!-- close .grocery-list -->
-</div> <!-- close #listTab -->
-
+</div>
 
 <!-- Purchases Tab -->
 <div id="purchasesTab" class="tab-content">
@@ -276,9 +248,60 @@
     </div>
 
     <div class="card">
-        <h3>🛍️ Recent Purchases</h3>
-        <div id="recent-purchases-list" class="purchases-list">
-            <!-- Recent purchases will be listed here -->
+        <div class="purchases-header">
+            <h3>🛍️ Purchase History</h3>
+            <div class="purchase-filters">
+                <select id="purchaseCategoryFilter" class="filter-select">
+                    <option value="all">All Categories</option>
+                    <option value="fruits">🍎 Fruits & Vegetables</option>
+                    <option value="dairy">🥛 Dairy & Eggs</option>
+                    <option value="meat">🍗 Meat & Fish</option>
+                    <option value="bakery">🍞 Bakery</option>
+                    <option value="beverages">🥤 Beverages</option>
+                    <option value="snacks">🍿 Snacks</option>
+                    <option value="household">🏠 Household</option>
+                    <option value="personal">🧴 Personal Care</option>
+                    <option value="frozen">🧊 Frozen Foods</option>
+                    <option value="grains">🌾 Grains & Pulses</option>
+                    <option value="other">📦 Other</option>
+                </select>
+                <select id="purchaseStoreFilter" class="filter-select">
+                    <option value="all">All Stores</option>
+                </select>
+                <input type="month" id="purchaseMonthFilter" class="filter-select">
+                <button class="section-action" id="clearPurchaseFilters">Clear Filters</button>
+            </div>
+        </div>
+        
+        <div class="purchases-table-container">
+            <div class="table-header">
+                <div class="table-cell">Item</div>
+                <div class="table-cell">Category</div>
+                <div class="table-cell">Quantity</div>
+                <div class="table-cell">Price</div>
+                <div class="table-cell">Store</div>
+                <div class="table-cell">Date</div>
+                <div class="table-cell">Added By</div>
+            </div>
+            <div class="table-body" id="purchases-table-body">
+                <!-- Purchased items rows will be inserted here -->
+            </div>
+            <div id="purchases-empty" class="empty-state" style="display: none;">
+                <div class="empty-state-icon">📦</div>
+                <p>No purchase history yet</p>
+                <p class="text-secondary">Add prices to purchased items to see them here</p>
+            </div>
+        </div>
+        
+        <div class="purchases-summary">
+            <div class="summary-row">
+                <span>Filtered Items:</span>
+                <span id="filtered-count">0</span>
+            </div>
+            <div class="summary-row">
+                <span>Filtered Total:</span>
+                <span id="filtered-total">₹0</span>
+            </div>
         </div>
     </div>
 </div>
