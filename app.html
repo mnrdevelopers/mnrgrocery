@@ -325,21 +325,42 @@
             <button class="copy-btn outline" id="copyFamilyCode">Copy</button>
         </div>
         
-        <!-- Quick Invite Buttons -->
-        <div class="invite-actions" style="margin-top: 20px;">
-            <h4 style="margin-bottom: 15px; color: var(--text-primary);">Quick Invite</h4>
-            <button class="whatsapp-invite-btn full-width" id="whatsappInviteBtn" style="margin-bottom: 10px;">
-                <span>📱</span> Invite via WhatsApp
-            </button>
-            <div style="display: flex; gap: 10px;">
-                <button class="secondary full-width" id="shareCodeBtn">
-                    <span>📋</span> Copy Code
-                </button>
-                <button class="outline full-width" id="shareLinkBtn">
-                    <span>🔗</span> Copy Link
-                </button>
-            </div>
-        </div>
+       <!-- Quick Invite Buttons -->
+<div class="invite-actions">
+    <h4>Quick Invite</h4>
+    
+    <!-- Main WhatsApp Button -->
+    <button class="whatsapp-invite-btn full-width pulse" id="whatsappInviteBtn">
+        <i class="fab fa-whatsapp"></i>
+        Invite via WhatsApp
+    </button>
+    
+    <!-- Share Code & Link Buttons -->
+    <div class="share-buttons-grid">
+        <button class="share-btn secondary" id="shareCodeBtn">
+            <i class="fas fa-copy"></i>
+            Copy Code
+        </button>
+        <button class="share-btn outline" id="shareLinkBtn">
+            <i class="fas fa-link"></i>
+            Copy Link
+        </button>
+    </div>
+    
+    <!-- Additional Invite Options -->
+    <div class="additional-invite-options">
+        <button class="invite-option-btn" id="emailInviteBtn">
+            <i class="fas fa-envelope"></i>
+            Email Invite
+        </button>
+        <button class="invite-option-btn" id="bulkInviteBtn">
+            <i class="fas fa-users"></i>
+            Bulk Invite
+        </button>
+        <button class="invite-option-btn" id="phoneInviteBtn">
+            <i class="fas fa-phone"></i>
+            Invite to Number
+        </button>
     </div>
 </div>
 
