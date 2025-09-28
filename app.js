@@ -9,7 +9,6 @@ class GroceryApp {
         this.currentSearch = '';
         this.itemsUnsubscribe = null;
         this.familyUnsubscribe = null;
-        this.completedVisible = false;
         this.userPreferences = {};
         
         this.init();
@@ -21,102 +20,98 @@ class GroceryApp {
         this.startUsernameAnimationCycle();
     }
 
-  async checkAuthState() {
-    // Show loading screen immediately with proper opacity
-    this.showScreen('loading');
-    
-    // Force the loading screen to be visible
-    setTimeout(() => {
-        const loadingScreen = document.getElementById('loadingScreen');
-        if (loadingScreen) {
-            loadingScreen.style.opacity = '1';
-        }
-    }, 10);
-    
-    auth.onAuthStateChanged(async (user) => {
-        if (user) {
-            this.currentUser = user;
-            await this.checkUserFamily();
-        } else {
-            // If not authenticated after 5 seconds, redirect to auth
-            setTimeout(() => {
-                if (!this.currentUser) {
-                    window.location.href = 'auth.html';
-                }
-            }, 5000);
-        }
-    });
-}
-    
-  async checkUserFamily() {
-    if (!this.currentUser) {
-        window.location.href = 'auth.html';
-        return;
-    }
-
-    try {
-        await this.debugUserStatus();
-        console.log('Checking user family for:', this.currentUser.uid);
+    async checkAuthState() {
+        this.showScreen('loading');
         
-        // Ensure user document exists
-        await this.ensureUserDocumentExists();
+        setTimeout(() => {
+            const loadingScreen = document.getElementById('loadingScreen');
+            if (loadingScreen) {
+                loadingScreen.style.opacity = '1';
+            }
+        }, 10);
         
-        const userDoc = await db.collection('users').doc(this.currentUser.uid).get();
-        
-        if (userDoc.exists) {
-            const userData = userDoc.data();
-            console.log('User data:', userData);
-            
-            if (userData.familyId) {
-                this.currentFamily = userData.familyId;
-                console.log('User has family:', this.currentFamily);
-                await this.loadFamilyData();
-                this.updateHeaderUsername();
-                this.showScreen('app');
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                this.currentUser = user;
+                await this.checkUserFamily();
             } else {
-                console.log('User needs family setup');
+                setTimeout(() => {
+                    if (!this.currentUser) {
+                        window.location.href = 'auth.html';
+                    }
+                }, 5000);
+            }
+        });
+    }
+    
+    async checkUserFamily() {
+        if (!this.currentUser) {
+            window.location.href = 'auth.html';
+            return;
+        }
+
+        try {
+            await this.debugUserStatus();
+            console.log('Checking user family for:', this.currentUser.uid);
+            
+            await this.ensureUserDocumentExists();
+            
+            const userDoc = await db.collection('users').doc(this.currentUser.uid).get();
+            
+            if (userDoc.exists) {
+                const userData = userDoc.data();
+                console.log('User data:', userData);
+                
+                if (userData.familyId) {
+                    this.currentFamily = userData.familyId;
+                    console.log('User has family:', this.currentFamily);
+                    await this.loadFamilyData();
+                    this.updateHeaderUsername();
+                    this.showScreen('app');
+                } else {
+                    console.log('User needs family setup');
+                    this.showScreen('familySetup');
+                }
+            } else {
+                console.log('User document not found, creating one...');
+                await this.createUserDocument();
                 this.showScreen('familySetup');
             }
-        } else {
-            console.log('User document not found, creating one...');
-            await this.createUserDocument();
+            
+            this.hideLoadingScreen();
+        } catch (error) {
+            console.error("Error checking user family:", error);
+            Utils.showToast('Error loading user data: ' + error.message);
             this.showScreen('familySetup');
+            this.hideLoadingScreen();
         }
+    }
+
+    async ensureUserDocumentExists() {
+        const userDoc = await db.collection('users').doc(this.currentUser.uid).get();
         
-        this.hideLoadingScreen();
-    } catch (error) {
-        console.error("Error checking user family:", error);
-        Utils.showToast('Error loading user data: ' + error.message);
-        this.showScreen('familySetup');
-        this.hideLoadingScreen();
+        if (!userDoc.exists) {
+            console.log('Creating missing user document for:', this.currentUser.uid);
+            await this.createUserDocument();
+        }
     }
-}
 
-async ensureUserDocumentExists() {
-    const userDoc = await db.collection('users').doc(this.currentUser.uid).get();
-    
-    if (!userDoc.exists) {
-        console.log('Creating missing user document for:', this.currentUser.uid);
-        await this.createUserDocument();
+    async createUserDocument() {
+        const userData = {
+            name: this.currentUser.displayName || 'User',
+            email: this.currentUser.email,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            photoURL: this.currentUser.photoURL || null,
+            preferences: {
+                notifications: true,
+                budget: 5000
+            },
+            familyId: null
+        };
+
+        await db.collection('users').doc(this.currentUser.uid).set(userData);
+        console.log('User document created successfully');
     }
-}
-
-async createUserDocument() {
-    const userData = {
-        name: this.currentUser.displayName || 'User',
-        email: this.currentUser.email,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-        photoURL: this.currentUser.photoURL || null,
-        preferences: {
-            notifications: true,
-            budget: 5000
-        },
-        familyId: null
-    };
-
-    await db.collection('users').doc(this.currentUser.uid).set(userData);
-    console.log('User document created successfully');
-}
 
     setupEventListeners() {
         // Family setup
@@ -172,6 +167,17 @@ async createUserDocument() {
         if (purchaseItemSelect) purchaseItemSelect.addEventListener('change', () => this.updatePurchaseForm());
         if (addPriceBtn) addPriceBtn.addEventListener('click', () => this.switchTab('purchases'));
 
+        // NEW: Purchase filter listeners
+        const categoryFilter = document.getElementById('purchaseCategoryFilter');
+        const storeFilter = document.getElementById('purchaseStoreFilter');
+        const monthFilter = document.getElementById('purchaseMonthFilter');
+        const clearFilters = document.getElementById('clearPurchaseFilters');
+        
+        if (categoryFilter) categoryFilter.addEventListener('change', () => this.renderPurchaseTable());
+        if (storeFilter) storeFilter.addEventListener('change', () => this.renderPurchaseTable());
+        if (monthFilter) monthFilter.addEventListener('change', () => this.renderPurchaseTable());
+        if (clearFilters) clearFilters.addEventListener('click', () => this.clearPurchaseFilters());
+
         // Actions
         const copyFamilyCodeBtn = document.getElementById('copyFamilyCode');
         const changeNameBtn = document.getElementById('changeNameBtn');
@@ -181,7 +187,6 @@ async createUserDocument() {
         const logoutBtn = document.getElementById('logoutBtn');
         const headerLogout = document.getElementById('headerLogout');
         const clearCompleted = document.getElementById('clearCompleted');
-        const toggleCompleted = document.getElementById('toggleCompleted');
         
         if (copyFamilyCodeBtn) copyFamilyCodeBtn.addEventListener('click', () => this.copyFamilyCode());
         if (changeNameBtn) changeNameBtn.addEventListener('click', () => this.changeUserName());
@@ -191,7 +196,6 @@ async createUserDocument() {
         if (logoutBtn) logoutBtn.addEventListener('click', () => this.logoutUser());
         if (headerLogout) headerLogout.addEventListener('click', () => this.logoutUser());
         if (clearCompleted) clearCompleted.addEventListener('click', () => this.clearCompletedItems());
-        if (toggleCompleted) toggleCompleted.addEventListener('click', () => this.toggleCompletedVisibility());
 
         // Set default dates
         this.setDefaultDates();
@@ -206,39 +210,36 @@ async createUserDocument() {
         if (purchaseDate) purchaseDate.value = today;
     }
 
-   showScreen(screen) {
-    const loadingScreen = document.getElementById('loadingScreen');
-    const familySetupScreen = document.getElementById('familySetupScreen');
-    const appScreen = document.getElementById('appScreen');
+    showScreen(screen) {
+        const loadingScreen = document.getElementById('loadingScreen');
+        const familySetupScreen = document.getElementById('familySetupScreen');
+        const appScreen = document.getElementById('appScreen');
 
-    // Hide all screens first
-    if (loadingScreen) {
-        loadingScreen.style.display = 'none';
-        loadingScreen.style.opacity = '0';
-    }
-    if (familySetupScreen) familySetupScreen.style.display = 'none';
-    if (appScreen) appScreen.style.display = 'none';
+        if (loadingScreen) {
+            loadingScreen.style.display = 'none';
+            loadingScreen.style.opacity = '0';
+        }
+        if (familySetupScreen) familySetupScreen.style.display = 'none';
+        if (appScreen) appScreen.style.display = 'none';
 
-    // Show the requested screen
-    switch(screen) {
-        case 'loading':
-            if (loadingScreen) {
-                loadingScreen.style.display = 'flex';
-                // Force reflow before setting opacity
-                setTimeout(() => {
-                    loadingScreen.style.opacity = '1';
-                }, 10);
-            }
-            break;
-        case 'familySetup':
-            if (familySetupScreen) familySetupScreen.style.display = 'flex';
-            break;
-        case 'app':
-            if (appScreen) appScreen.style.display = 'block';
-            this.loadUserPreferences();
-            break;
+        switch(screen) {
+            case 'loading':
+                if (loadingScreen) {
+                    loadingScreen.style.display = 'flex';
+                    setTimeout(() => {
+                        loadingScreen.style.opacity = '1';
+                    }, 10);
+                }
+                break;
+            case 'familySetup':
+                if (familySetupScreen) familySetupScreen.style.display = 'flex';
+                break;
+            case 'app':
+                if (appScreen) appScreen.style.display = 'block';
+                this.loadUserPreferences();
+                break;
+        }
     }
-}
 
     hideLoadingScreen() {
         const loadingScreen = document.getElementById('loadingScreen');
@@ -247,204 +248,192 @@ async createUserDocument() {
         }
     }
 
-async createFamily() {
-    const familyCode = Utils.generateFamilyCode();
-    
-    console.log('Creating family with code:', familyCode);
+    async createFamily() {
+        const familyCode = Utils.generateFamilyCode();
+        
+        console.log('Creating family with code:', familyCode);
 
-    let userName = 'User';
-    try {
-        const userDoc = await db.collection('users').doc(this.currentUser.uid).get();
-        if (userDoc.exists && userDoc.data().name) {
-            userName = userDoc.data().name;
+        let userName = 'User';
+        try {
+            const userDoc = await db.collection('users').doc(this.currentUser.uid).get();
+            if (userDoc.exists && userDoc.data().name) {
+                userName = userDoc.data().name;
+            }
+        } catch (error) {
+            console.error('Error getting user name:', error);
         }
-    } catch (error) {
-        console.error('Error getting user name:', error);
-    }
 
-    const familyData = {
-        name: `${userName}'s Family`,
-        createdBy: this.currentUser.uid,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-        members: [this.currentUser.uid],
-        code: familyCode
-    };
+        const familyData = {
+            name: `${userName}'s Family`,
+            createdBy: this.currentUser.uid,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            members: [this.currentUser.uid],
+            code: familyCode
+        };
 
-    Utils.showToast('Creating family...');
+        Utils.showToast('Creating family...');
 
-    try {
-        console.log('Creating family document...');
-        
-        // Create family document
-        await db.collection('families').doc(familyCode).set(familyData);
-        
-        console.log('Updating user document...');
-        
-        // Update user's familyId
-        await db.collection('users').doc(this.currentUser.uid).update({
-            familyId: familyCode
-        });
+        try {
+            console.log('Creating family document...');
+            
+            await db.collection('families').doc(familyCode).set(familyData);
+            
+            console.log('Updating user document...');
+            
+            await db.collection('users').doc(this.currentUser.uid).update({
+                familyId: familyCode
+            });
 
-        this.currentFamily = familyCode;
-        this.showScreen('app');
-        await this.loadFamilyData();
-        Utils.showToast(`Family created! Code: ${familyCode}`);
-    } catch (error) {
-        console.error('Error creating family:', error);
-        console.error('Error code:', error.code);
-        
-        let errorMessage = 'Error creating family: ' + error.message;
-        
-        if (error.code === 'permission-denied') {
-            errorMessage = 'Permission denied. Please check Firestore rules.';
+            this.currentFamily = familyCode;
+            this.showScreen('app');
+            await this.loadFamilyData();
+            Utils.showToast(`Family created! Code: ${familyCode}`);
+        } catch (error) {
+            console.error('Error creating family:', error);
+            console.error('Error code:', error.code);
+            
+            let errorMessage = 'Error creating family: ' + error.message;
+            
+            if (error.code === 'permission-denied') {
+                errorMessage = 'Permission denied. Please check Firestore rules.';
+            }
+            
+            Utils.showToast(errorMessage);
         }
-        
-        Utils.showToast(errorMessage);
-    }
-}
-
- async joinFamily() {
-    const familyCodeInput = document.getElementById('familyCodeInput');
-    const familyCode = familyCodeInput ? familyCodeInput.value.toUpperCase().trim() : '';
-    
-    if (!familyCode) {
-        Utils.showToast('Please enter a family code');
-        return;
     }
 
-    if (familyCode.length !== 6) {
-        Utils.showToast('Family code must be 6 characters');
-        return;
-    }
-
-    Utils.showToast('Joining family...');
-
-    try {
-        console.log('Attempting to join family:', familyCode);
+    async joinFamily() {
+        const familyCodeInput = document.getElementById('familyCodeInput');
+        const familyCode = familyCodeInput ? familyCodeInput.value.toUpperCase().trim() : '';
         
-        // Ensure user document exists
-        await this.ensureUserDocumentExists();
-        
-        // First, check if family exists
-        const familyDoc = await db.collection('families').doc(familyCode).get();
-        console.log('Family document exists:', familyDoc.exists);
-        
-        if (!familyDoc.exists) {
-            Utils.showToast('Family not found. Check the code and try again.');
+        if (!familyCode) {
+            Utils.showToast('Please enter a family code');
             return;
         }
 
-        const familyData = familyDoc.data();
-        console.log('Family data:', familyData);
-        
-        // Check if user is already a member
-        if (familyData.members && familyData.members.includes(this.currentUser.uid)) {
-            Utils.showToast('You are already a member of this family');
+        if (familyCode.length !== 6) {
+            Utils.showToast('Family code must be 6 characters');
             return;
         }
 
-        console.log('Updating family members...');
-        
-        // Update family members array
-        await db.collection('families').doc(familyCode).update({
-            members: firebase.firestore.FieldValue.arrayUnion(this.currentUser.uid)
-        });
+        Utils.showToast('Joining family...');
 
-        console.log('Updating user document...');
-        
-        // Update user's familyId
-        await db.collection('users').doc(this.currentUser.uid).update({
-            familyId: familyCode
-        });
+        try {
+            console.log('Attempting to join family:', familyCode);
+            
+            await this.ensureUserDocumentExists();
+            
+            const familyDoc = await db.collection('families').doc(familyCode).get();
+            console.log('Family document exists:', familyDoc.exists);
+            
+            if (!familyDoc.exists) {
+                Utils.showToast('Family not found. Check the code and try again.');
+                return;
+            }
 
-        this.currentFamily = familyCode;
-        this.showScreen('app');
-        await this.loadFamilyData();
-        Utils.showToast('Joined family successfully!');
-        
-        // Clear input field
-        if (familyCodeInput) familyCodeInput.value = '';
-        
-    } catch (error) {
-        console.error('Error joining family:', error);
-        Utils.showToast('Error joining family: ' + error.message);
+            const familyData = familyDoc.data();
+            console.log('Family data:', familyData);
+            
+            if (familyData.members && familyData.members.includes(this.currentUser.uid)) {
+                Utils.showToast('You are already a member of this family');
+                return;
+            }
+
+            console.log('Updating family members...');
+            
+            await db.collection('families').doc(familyCode).update({
+                members: firebase.firestore.FieldValue.arrayUnion(this.currentUser.uid)
+            });
+
+            console.log('Updating user document...');
+            
+            await db.collection('users').doc(this.currentUser.uid).update({
+                familyId: familyCode
+            });
+
+            this.currentFamily = familyCode;
+            this.showScreen('app');
+            await this.loadFamilyData();
+            Utils.showToast('Joined family successfully!');
+            
+            if (familyCodeInput) familyCodeInput.value = '';
+            
+        } catch (error) {
+            console.error('Error joining family:', error);
+            Utils.showToast('Error joining family: ' + error.message);
+        }
     }
-}
 
-  async loadFamilyData() {
-    if (!this.currentFamily) {
-        console.error('No current family set');
-        return;
-    }
+    async loadFamilyData() {
+        if (!this.currentFamily) {
+            console.error('No current family set');
+            return;
+        }
 
-    // Unsubscribe from previous listeners
-    if (this.itemsUnsubscribe) {
-        this.itemsUnsubscribe();
-        this.itemsUnsubscribe = null;
-    }
-    if (this.familyUnsubscribe) {
-        this.familyUnsubscribe();
-        this.familyUnsubscribe = null;
-    }
+        if (this.itemsUnsubscribe) {
+            this.itemsUnsubscribe();
+            this.itemsUnsubscribe = null;
+        }
+        if (this.familyUnsubscribe) {
+            this.familyUnsubscribe();
+            this.familyUnsubscribe = null;
+        }
 
-    try {
-        // Set up real-time listener for grocery items
-        this.itemsUnsubscribe = db.collection('items')
-            .where('familyId', '==', this.currentFamily)
-            .onSnapshot((snapshot) => {
-                console.log('Items snapshot received:', snapshot.size, 'items');
-                
-                this.groceryItems = [];
-                snapshot.forEach((doc) => {
-                    const itemData = doc.data();
-                    this.groceryItems.push({
-                        id: doc.id,
-                        ...itemData
+        try {
+            this.itemsUnsubscribe = db.collection('items')
+                .where('familyId', '==', this.currentFamily)
+                .onSnapshot((snapshot) => {
+                    console.log('Items snapshot received:', snapshot.size, 'items');
+                    
+                    this.groceryItems = [];
+                    snapshot.forEach((doc) => {
+                        const itemData = doc.data();
+                        this.groceryItems.push({
+                            id: doc.id,
+                            ...itemData
+                        });
                     });
+
+                    this.groceryItems.sort((a, b) => {
+                        const dateA = a.createdAt?.toDate() || new Date(0);
+                        const dateB = b.createdAt?.toDate() || new Date(0);
+                        return dateB - dateA;
+                    });
+
+                    console.log('Processed items:', this.groceryItems.length);
+                    this.renderItems();
+                    this.updateStats();
+                    this.updatePurchaseItemsList();
+                    this.renderPurchaseTable(); // NEW: Update purchase table
+                    this.updateFamilyStats();
+                    
+                }, (error) => {
+                    console.error('Error listening to items:', error);
+                    Utils.showToast('Error loading items: ' + error.message);
                 });
 
-                // Sort items by creation date (newest first)
-                this.groceryItems.sort((a, b) => {
-                    const dateA = a.createdAt?.toDate() || new Date(0);
-                    const dateB = b.createdAt?.toDate() || new Date(0);
-                    return dateB - dateA;
+            this.familyUnsubscribe = db.collection('families').doc(this.currentFamily)
+                .onSnapshot(async (doc) => {
+                    if (doc.exists) {
+                        const familyData = doc.data();
+                        console.log('Family data loaded:', familyData);
+                        await this.loadFamilyMembers(familyData.members || []);
+                        const familyCodeDisplay = document.getElementById('familyCodeDisplay');
+                        if (familyCodeDisplay) familyCodeDisplay.textContent = this.currentFamily;
+                    } else {
+                        console.error('Family document not found');
+                        Utils.showToast('Family not found');
+                    }
+                }, (error) => {
+                    console.error('Error listening to family:', error);
+                    Utils.showToast('Error loading family data: ' + error.message);
                 });
 
-                console.log('Processed items:', this.groceryItems.length);
-                this.renderItems();
-                this.updateStats();
-                this.updatePurchaseItemsList();
-                this.updateRecentPurchases();
-                this.updateFamilyStats();
-                
-            }, (error) => {
-                console.error('Error listening to items:', error);
-                Utils.showToast('Error loading items: ' + error.message);
-            });
-
-        // Set up real-time listener for family members
-        this.familyUnsubscribe = db.collection('families').doc(this.currentFamily)
-            .onSnapshot(async (doc) => {
-                if (doc.exists) {
-                    const familyData = doc.data();
-                    console.log('Family data loaded:', familyData);
-                    await this.loadFamilyMembers(familyData.members || []);
-                    const familyCodeDisplay = document.getElementById('familyCodeDisplay');
-                    if (familyCodeDisplay) familyCodeDisplay.textContent = this.currentFamily;
-                } else {
-                    console.error('Family document not found');
-                    Utils.showToast('Family not found');
-                }
-            }, (error) => {
-                console.error('Error listening to family:', error);
-                Utils.showToast('Error loading family data: ' + error.message);
-            });
-
-    } catch (error) {
-        console.error('Error setting up listeners:', error);
-        Utils.showToast('Error setting up data listeners');
+        } catch (error) {
+            console.error('Error setting up listeners:', error);
+            Utils.showToast('Error setting up data listeners');
+        }
     }
-}
 
     async loadFamilyMembers(memberIds) {
         if (!memberIds || !Array.isArray(memberIds)) return;
@@ -523,7 +512,6 @@ async createFamily() {
         try {
             await db.collection('items').add(itemData);
             
-            // Reset form
             if (itemInput) itemInput.value = '';
             if (qtyInput) qtyInput.value = '1';
             if (unitSelect) unitSelect.value = 'pcs';
@@ -643,7 +631,6 @@ async createFamily() {
                 completedByName: userName
             });
 
-            // Reset purchase form
             if (purchasePrice) purchasePrice.value = '';
             if (purchaseStore) purchaseStore.value = '';
             if (purchaseItemSelect) purchaseItemSelect.value = '';
@@ -660,7 +647,6 @@ async createFamily() {
         const purchaseItemSelect = document.getElementById('purchaseItemSelect');
         if (!purchaseItemSelect) return;
 
-        // Get items that are completed but don't have prices yet
         const unpricedItems = this.groceryItems.filter(item => 
             item.completed && (!item.price || item.price === 0)
         );
@@ -674,7 +660,6 @@ async createFamily() {
             purchaseItemSelect.appendChild(option);
         });
 
-        // Show/hide add price button based on unpriced items
         const addPriceBtn = document.getElementById('addPriceBtn');
         if (addPriceBtn) {
             addPriceBtn.style.display = unpricedItems.length > 0 ? 'inline-block' : 'none';
@@ -689,76 +674,177 @@ async createFamily() {
         const item = this.groceryItems.find(item => item.id === itemId);
 
         if (item && purchaseDate) {
-            // Set purchase date to today if not already set
             const today = new Date().toISOString().split('T')[0];
             purchaseDate.value = today;
         }
     }
 
- renderItems() {
-    const pendingItemsContainer = document.getElementById('pending-items');
-    const completedItemsBody = document.getElementById('completed-items-body');
-    const completedEmpty = document.getElementById('completed-empty');
-    
-    if (!pendingItemsContainer || !completedItemsBody || !completedEmpty) {
-        console.error('Required DOM elements not found');
-        return;
+    // NEW: Render purchase table
+    renderPurchaseTable() {
+        const tableBody = document.getElementById('purchases-table-body');
+        const emptyState = document.getElementById('purchases-empty');
+        const filteredCount = document.getElementById('filtered-count');
+        const filteredTotal = document.getElementById('filtered-total');
+        
+        if (!tableBody || !emptyState) return;
+
+        const purchasedItems = this.groceryItems.filter(item => item.price && item.price > 0);
+        
+        const categoryFilter = document.getElementById('purchaseCategoryFilter')?.value || 'all';
+        const storeFilter = document.getElementById('purchaseStoreFilter')?.value || 'all';
+        const monthFilter = document.getElementById('purchaseMonthFilter')?.value || '';
+        
+        let filteredPurchases = purchasedItems.filter(item => {
+            const matchesCategory = categoryFilter === 'all' || item.category === categoryFilter;
+            const matchesStore = storeFilter === 'all' || item.store === storeFilter;
+            const matchesMonth = !monthFilter || (item.purchaseDate && item.purchaseDate.startsWith(monthFilter));
+            
+            return matchesCategory && matchesStore && matchesMonth;
+        });
+
+        filteredPurchases.sort((a, b) => {
+            const dateA = a.purchaseDate ? new Date(a.purchaseDate) : new Date(0);
+            const dateB = b.purchaseDate ? new Date(b.purchaseDate) : new Date(0);
+            return dateB - dateA;
+        });
+
+        tableBody.innerHTML = '';
+        
+        if (filteredPurchases.length > 0) {
+            emptyState.style.display = 'none';
+            tableBody.style.display = 'block';
+            
+            filteredPurchases.forEach(item => {
+                const row = document.createElement('div');
+                row.className = 'purchase-table-row';
+                row.innerHTML = this.createPurchaseTableRowHTML(item);
+                tableBody.appendChild(row);
+            });
+        } else {
+            emptyState.style.display = 'block';
+            tableBody.style.display = 'none';
+        }
+
+        const totalAmount = filteredPurchases.reduce((sum, item) => sum + (item.price || 0), 0);
+        
+        if (filteredCount) filteredCount.textContent = filteredPurchases.length;
+        if (filteredTotal) filteredTotal.textContent = `₹${totalAmount.toFixed(2)}`;
     }
 
-    // Filter items based on current filter and search
-    let filteredItems = this.groceryItems.filter(item => {
-        const matchesCategory = this.currentFilter === 'all' || 
-                              (this.currentFilter === 'urgent' ? item.isUrgent : 
-                              (this.currentFilter === 'claimed' ? item.claimedBy : 
-                              (this.currentFilter === 'recurring' ? item.isRecurring : item.category === this.currentFilter)));
-        const matchesSearch = item.name.toLowerCase().includes(this.currentSearch.toLowerCase());
-        return matchesCategory && matchesSearch;
-    });
+    // NEW: Create purchase table row
+    createPurchaseTableRowHTML(item) {
+        const categoryLabels = {
+            'fruits': '🍎 Fruits',
+            'dairy': '🥛 Dairy',
+            'meat': '🍗 Meat',
+            'bakery': '🍞 Bakery',
+            'beverages': '🥤 Drinks',
+            'snacks': '🍿 Snacks',
+            'household': '🏠 Household',
+            'personal': '🧴 Personal',
+            'frozen': '🧊 Frozen',
+            'grains': '🌾 Grains',
+            'other': '📦 Other',
+            'uncategorized': '📦 General'
+        };
 
-    const pendingItems = filteredItems.filter(item => !item.completed);
-    const completedItems = filteredItems.filter(item => item.completed);
+        const formattedDate = Utils.formatDate(item.purchaseDate);
+        const addedByName = item.addedByName || 'User';
 
-    console.log('Rendering items:', { total: this.groceryItems.length, pending: pendingItems.length, completed: completedItems.length });
-
-    // Render pending items
-    if (pendingItems.length > 0) {
-        pendingItemsContainer.innerHTML = pendingItems.map(item => this.createItemHTML(item)).join('');
-    } else {
-        pendingItemsContainer.innerHTML = `
-            <div class="empty-state">
-                <div class="empty-state-icon">🛒</div>
-                <p>No items to buy</p>
-                <button class="outline" onclick="app.focusItemInput()">Add Your First Item</button>
+        return `
+            <div class="purchase-table-cell item-name-cell" data-label="Item">
+                <span>${item.name}</span>
+            </div>
+            <div class="purchase-table-cell category-cell" data-label="Category">
+                <span class="category-badge">${categoryLabels[item.category] || item.category}</span>
+            </div>
+            <div class="purchase-table-cell quantity-cell" data-label="Quantity">
+                ${item.quantity} ${item.unit}
+            </div>
+            <div class="purchase-table-cell price-cell" data-label="Price">
+                ₹${item.price?.toFixed(2) || '0.00'}
+            </div>
+            <div class="purchase-table-cell store-cell" data-label="Store">
+                ${item.store || '-'}
+            </div>
+            <div class="purchase-table-cell date-cell" data-label="Date">
+                ${formattedDate}
+            </div>
+            <div class="purchase-table-cell added-by-cell" data-label="Added By">
+                <div class="added-by-avatar">${addedByName.charAt(0).toUpperCase()}</div>
+                <span>${addedByName}</span>
             </div>
         `;
     }
 
-    // Render completed items in TABLE format
-    completedItemsBody.innerHTML = '';
-    
-    if (completedItems.length > 0) {
-        completedEmpty.style.display = 'none';
-        completedItemsBody.style.display = 'block';
+    // NEW: Clear purchase filters
+    clearPurchaseFilters() {
+        const categoryFilter = document.getElementById('purchaseCategoryFilter');
+        const storeFilter = document.getElementById('purchaseStoreFilter');
+        const monthFilter = document.getElementById('purchaseMonthFilter');
         
-        completedItems.forEach(item => {
-            const row = document.createElement('div');
-            row.className = 'purchased-item-row';
-            row.innerHTML = this.createPurchasedItemRowHTML(item);
-            completedItemsBody.appendChild(row);
-        });
-    } else {
-        completedEmpty.style.display = 'block';
-        completedItemsBody.style.display = 'none';
+        if (categoryFilter) categoryFilter.value = 'all';
+        if (storeFilter) storeFilter.value = 'all';
+        if (monthFilter) monthFilter.value = '';
+        
+        this.renderPurchaseTable();
     }
 
-    // Update badges
-    const pendingBadge = document.getElementById('pending-badge');
-    const completedBadge = document.getElementById('completed-badge');
-    if (pendingBadge) pendingBadge.textContent = `(${pendingItems.length})`;
-    if (completedBadge) completedBadge.textContent = `(${completedItems.length})`;
+    // NEW: Update purchase filters
+    updatePurchaseFilters() {
+        const storeFilter = document.getElementById('purchaseStoreFilter');
+        if (!storeFilter) return;
 
-    this.addItemEventListeners();
-}
+        const purchasedItems = this.groceryItems.filter(item => item.price && item.price > 0);
+        const stores = [...new Set(purchasedItems.map(item => item.store).filter(store => store))];
+        
+        storeFilter.innerHTML = '<option value="all">All Stores</option>';
+        stores.forEach(store => {
+            const option = document.createElement('option');
+            option.value = store;
+            option.textContent = store;
+            storeFilter.appendChild(option);
+        });
+    }
+
+    renderItems() {
+        const pendingItemsContainer = document.getElementById('pending-items');
+        
+        if (!pendingItemsContainer) {
+            console.error('Required DOM elements not found');
+            return;
+        }
+
+        let filteredItems = this.groceryItems.filter(item => {
+            const matchesCategory = this.currentFilter === 'all' || 
+                                  (this.currentFilter === 'urgent' ? item.isUrgent : 
+                                  (this.currentFilter === 'claimed' ? item.claimedBy : 
+                                  (this.currentFilter === 'recurring' ? item.isRecurring : item.category === this.currentFilter)));
+            const matchesSearch = item.name.toLowerCase().includes(this.currentSearch.toLowerCase());
+            return matchesCategory && matchesSearch;
+        });
+
+        const pendingItems = filteredItems.filter(item => !item.completed);
+
+        console.log('Rendering items:', { total: this.groceryItems.length, pending: pendingItems.length });
+
+        if (pendingItems.length > 0) {
+            pendingItemsContainer.innerHTML = pendingItems.map(item => this.createItemHTML(item)).join('');
+        } else {
+            pendingItemsContainer.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">🛒</div>
+                    <p>No items to buy</p>
+                    <button class="outline" onclick="app.focusItemInput()">Add Your First Item</button>
+                </div>
+            `;
+        }
+
+        const pendingBadge = document.getElementById('pending-badge');
+        if (pendingBadge) pendingBadge.textContent = `(${pendingItems.length})`;
+
+        this.addItemEventListeners();
+    }
 
     focusItemInput() {
         const itemInput = document.getElementById('itemInput');
@@ -766,7 +852,6 @@ async createFamily() {
     }
 
     addItemEventListeners() {
-        // Checkbox event listeners
         document.querySelectorAll('.item-checkbox').forEach(checkbox => {
             checkbox.addEventListener('click', (e) => {
                 const itemElement = e.target.closest('.grocery-item');
@@ -777,7 +862,6 @@ async createFamily() {
             });
         });
 
-        // Claim button event listeners
         document.querySelectorAll('.claim-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const itemElement = e.target.closest('.grocery-item');
@@ -788,7 +872,6 @@ async createFamily() {
             });
         });
 
-        // Unclaim button event listeners
         document.querySelectorAll('.unclaim-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const itemElement = e.target.closest('.grocery-item');
@@ -799,7 +882,6 @@ async createFamily() {
             });
         });
 
-        // Delete button event listeners
         document.querySelectorAll('.delete-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const itemElement = e.target.closest('.grocery-item');
@@ -874,50 +956,6 @@ async createFamily() {
         `;
     }
 
-    createPurchasedItemRowHTML(item) {
-    const categoryIcons = {
-        'fruits': '🍎',
-        'dairy': '🥛',
-        'meat': '🍗',
-        'bakery': '🍞',
-        'beverages': '🥤',
-        'snacks': '🍿',
-        'household': '🏠',
-        'personal': '🧴',
-        'frozen': '🧊',
-        'grains': '🌾',
-        'other': '📦',
-        'uncategorized': '📦'
-    };
-
-    const icon = categoryIcons[item.category] || '📦';
-    const formattedDate = Utils.formatDate(item.purchaseDate);
-    const addedByName = item.addedByName || 'User';
-
-    return `
-        <div class="purchased-item-cell item-name-cell" data-label="Item">
-            <span class="item-icon">${icon}</span>
-            <span>${item.name}</span>
-        </div>
-        <div class="purchased-item-cell quantity-cell" data-label="Quantity">
-            ${item.quantity} ${item.unit}
-        </div>
-        <div class="purchased-item-cell price-cell" data-label="Price">
-            ₹${item.price?.toFixed(2) || '0.00'}
-        </div>
-        <div class="purchased-item-cell store-cell" data-label="Store">
-            ${item.store || '-'}
-        </div>
-        <div class="purchased-item-cell date-cell" data-label="Date">
-            ${formattedDate}
-        </div>
-        <div class="purchased-item-cell added-by-cell" data-label="Added By">
-            <div class="added-by-avatar">${addedByName.charAt(0).toUpperCase()}</div>
-            <span>${addedByName}</span>
-        </div>
-    `;
-}
-
     handleSearch(e) {
         this.currentSearch = e.target.value.toLowerCase();
         this.renderItems();
@@ -932,23 +970,21 @@ async createFamily() {
         }
     }
 
-   switchTab(tabName) {
-        // Update nav buttons
+    switchTab(tabName) {
         const navButtons = document.querySelectorAll('.nav-btn');
         navButtons.forEach(btn => {
             btn.classList.toggle('active', btn.dataset.tab === tabName);
         });
 
-        // Update tab contents
         const tabContents = document.querySelectorAll('.tab-content');
         tabContents.forEach(tab => {
             tab.classList.toggle('active', tab.id === `${tabName}Tab`);
         });
 
-        // Load tab-specific data
         if (tabName === 'purchases') {
             this.updatePurchaseItemsList();
-            this.updateRecentPurchases();
+            this.renderPurchaseTable(); // NEW: Use renderPurchaseTable instead of updateRecentPurchases
+            this.updatePurchaseFilters(); // NEW: Update filter options
         } else if (tabName === 'family') {
             this.loadFamilyTab();
         } else if (tabName === 'settings') {
@@ -997,7 +1033,6 @@ async createFamily() {
                 userEmailDisplay.textContent = this.currentUser.email;
                 userAvatarLarge.textContent = userData.name ? userData.name.charAt(0).toUpperCase() : 'U';
 
-                // Load preferences
                 if (userData.preferences) {
                     this.userPreferences = userData.preferences;
                 }
@@ -1007,53 +1042,46 @@ async createFamily() {
         }
     }
 
- async updateHeaderUsername() {
-    const headerUsername = document.getElementById('headerUsername');
-    if (headerUsername && this.currentUser) {
-        try {
-            const userDoc = await db.collection('users').doc(this.currentUser.uid).get();
-            if (userDoc.exists) {
-                const userData = userDoc.data();
-                const userName = userData.name || 'User';
-                
-                // Remove any existing animation classes
-                headerUsername.className = 'username';
-                
-                // Use color cycle animation with the new palette
-                headerUsername.classList.add('color-cycle');
-                
-                headerUsername.textContent = userName;
-                
-                // Add hover effect with new colors
-                headerUsername.style.transition = 'all 0.3s ease';
-                headerUsername.addEventListener('mouseenter', () => {
-                    headerUsername.style.transform = 'scale(1.1)';
-                });
-                headerUsername.addEventListener('mouseleave', () => {
-                    headerUsername.style.transform = 'scale(1)';
-                });
+    async updateHeaderUsername() {
+        const headerUsername = document.getElementById('headerUsername');
+        if (headerUsername && this.currentUser) {
+            try {
+                const userDoc = await db.collection('users').doc(this.currentUser.uid).get();
+                if (userDoc.exists) {
+                    const userData = userDoc.data();
+                    const userName = userData.name || 'User';
+                    
+                    headerUsername.className = 'username';
+                    headerUsername.classList.add('color-cycle');
+                    headerUsername.textContent = userName;
+                    
+                    headerUsername.style.transition = 'all 0.3s ease';
+                    headerUsername.addEventListener('mouseenter', () => {
+                        headerUsername.style.transform = 'scale(1.1)';
+                    });
+                    headerUsername.addEventListener('mouseleave', () => {
+                        headerUsername.style.transform = 'scale(1)';
+                    });
+                }
+            } catch (error) {
+                console.error('Error updating header username:', error);
             }
-        } catch (error) {
-            console.error('Error updating header username:', error);
         }
     }
-}
 
-    // Optional: Cycle through different animations
-startUsernameAnimationCycle() {
-    const headerUsername = document.getElementById('headerUsername');
-    if (!headerUsername) return;
-    
-    const animations = ['pulse', 'bounce', 'glow'];
-    let currentAnimation = 0;
-    
-    // Change animation every 10 seconds
-    setInterval(() => {
-        headerUsername.className = 'username';
-        headerUsername.classList.add(animations[currentAnimation]);
-        currentAnimation = (currentAnimation + 1) % animations.length;
-    }, 10000);
-}
+    startUsernameAnimationCycle() {
+        const headerUsername = document.getElementById('headerUsername');
+        if (!headerUsername) return;
+        
+        const animations = ['pulse', 'bounce', 'glow'];
+        let currentAnimation = 0;
+        
+        setInterval(() => {
+            headerUsername.className = 'username';
+            headerUsername.classList.add(animations[currentAnimation]);
+            currentAnimation = (currentAnimation + 1) % animations.length;
+        }, 10000);
+    }
 
     updateStats() {
         const total = this.groceryItems.length;
@@ -1061,7 +1089,6 @@ startUsernameAnimationCycle() {
         const claimed = this.groceryItems.filter(item => item.claimedBy && !item.completed).length;
         const pending = total - completed;
 
-        // Monthly stats
         const now = new Date();
         const currentMonth = now.getMonth();
         const currentYear = now.getFullYear();
@@ -1084,7 +1111,6 @@ startUsernameAnimationCycle() {
         const monthlyTotal = monthlyPurchases.reduce((sum, item) => sum + (item.price || 0), 0);
         const monthlyAverage = monthlyPurchases.length > 0 ? monthlyTotal / monthlyPurchases.length : 0;
 
-        // Update UI
         const totalItemsSpan = document.getElementById('total-items');
         const completedItemsSpan = document.getElementById('completed-items');
         const monthlyItemsSpan = document.getElementById('monthly-items');
@@ -1106,35 +1132,6 @@ startUsernameAnimationCycle() {
         if (monthlyAverageSpan) monthlyAverageSpan.textContent = `₹${monthlyAverage.toFixed(0)}`;
     }
 
-    updateRecentPurchases() {
-        const recentPurchasesList = document.getElementById('recent-purchases-list');
-        if (!recentPurchasesList) return;
-
-        const purchasedItems = this.groceryItems
-            .filter(item => item.price && item.price > 0)
-            .sort((a, b) => {
-                const dateA = a.purchaseDate ? new Date(a.purchaseDate) : new Date(0);
-                const dateB = b.purchaseDate ? new Date(b.purchaseDate) : new Date(0);
-                return dateB - dateA;
-            })
-            .slice(0, 10);
-
-        if (purchasedItems.length === 0) {
-            recentPurchasesList.innerHTML = '<p class="empty-state">No purchases yet</p>';
-            return;
-        }
-
-        recentPurchasesList.innerHTML = purchasedItems.map(item => `
-            <div class="purchase-record">
-                <div class="purchase-info">
-                    <div class="purchase-item-name">${item.name}</div>
-                    <div class="purchase-details">${item.quantity} ${item.unit} • ${item.store || 'Unknown store'} • ${Utils.formatDate(item.purchaseDate)}</div>
-                </div>
-                <div class="purchase-price">₹${item.price.toFixed(2)}</div>
-            </div>
-        `).join('');
-    }
-
     updateFamilyStats() {
         const topShopperSpan = document.getElementById('topShopper');
         const familyTotalItemsSpan = document.getElementById('familyTotalItems');
@@ -1147,7 +1144,6 @@ startUsernameAnimationCycle() {
         const purchasedItems = this.groceryItems.filter(item => item.price && item.price > 0);
         const urgentItems = this.groceryItems.filter(item => item.isUrgent);
 
-        // Simple implementation for top shopper
         const shopperCounts = {};
         completedItems.forEach(item => {
             if (item.completedByName) {
@@ -1292,56 +1288,37 @@ startUsernameAnimationCycle() {
         }
     }
 
-   toggleCompletedVisibility() {
-    this.completedVisible = !this.completedVisible;
-    const completedItemsContainer = document.getElementById('completed-items');
-    const toggleCompleted = document.getElementById('toggleCompleted');
-    
-    if (completedItemsContainer) {
-        completedItemsContainer.style.display = this.completedVisible ? 'block' : 'none';
-    }
-    if (toggleCompleted) {
-        toggleCompleted.textContent = this.completedVisible ? 'Hide Table' : 'Show Table';
-    }
-    
-    // Re-render to ensure items are displayed correctly
-    this.renderItems();
-}
-
     async debugUserStatus() {
-    console.log('=== DEBUG USER STATUS ===');
-    console.log('Current User UID:', this.currentUser?.uid);
-    console.log('Current User Email:', this.currentUser?.email);
-    console.log('Current User Display Name:', this.currentUser?.displayName);
-    
-    try {
-        const userDoc = await db.collection('users').doc(this.currentUser.uid).get();
-        console.log('User Document Exists:', userDoc.exists);
-        if (userDoc.exists) {
-            console.log('User Document Data:', userDoc.data());
-        }
+        console.log('=== DEBUG USER STATUS ===');
+        console.log('Current User UID:', this.currentUser?.uid);
+        console.log('Current User Email:', this.currentUser?.email);
+        console.log('Current User Display Name:', this.currentUser?.displayName);
         
-        // Check if user exists in any family
-        const families = await db.collection('families').get();
-        console.log('Total families:', families.size);
-        
-        families.forEach(doc => {
-            const family = doc.data();
-            if (family.members && family.members.includes(this.currentUser.uid)) {
-                console.log('User found in family:', doc.id);
+        try {
+            const userDoc = await db.collection('users').doc(this.currentUser.uid).get();
+            console.log('User Document Exists:', userDoc.exists);
+            if (userDoc.exists) {
+                console.log('User Document Data:', userDoc.data());
             }
-        });
-        
-    } catch (error) {
-        console.error('Debug error:', error);
+            
+            const families = await db.collection('families').get();
+            console.log('Total families:', families.size);
+            
+            families.forEach(doc => {
+                const family = doc.data();
+                if (family.members && family.members.includes(this.currentUser.uid)) {
+                    console.log('User found in family:', doc.id);
+                }
+            });
+            
+        } catch (error) {
+            console.error('Debug error:', error);
+        }
+        console.log('=== END DEBUG ===');
     }
-    console.log('=== END DEBUG ===');
-}
-
 
     async logoutUser() {
         if (confirm('Are you sure you want to logout?')) {
-            // Unsubscribe from listeners
             if (this.itemsUnsubscribe) this.itemsUnsubscribe();
             if (this.familyUnsubscribe) this.familyUnsubscribe();
 
@@ -1355,7 +1332,6 @@ startUsernameAnimationCycle() {
     }
 }
 
-// Initialize the app when DOM is loaded
 let app;
 document.addEventListener('DOMContentLoaded', () => {
     app = new GroceryApp();
