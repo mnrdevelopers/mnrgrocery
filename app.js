@@ -897,44 +897,28 @@ async createFamily() {
     }
 
    switchTab(tabName) {
-    console.log('Switching to tab:', tabName); // Debug log
-    
-    // Update nav buttons
-    const navButtons = document.querySelectorAll('.nav-btn');
-    navButtons.forEach(btn => {
-        const isActive = btn.dataset.tab === tabName;
-        btn.classList.toggle('active', isActive);
-        console.log('Button:', btn.dataset.tab, 'Active:', isActive); // Debug
-    });
+        // Update nav buttons
+        const navButtons = document.querySelectorAll('.nav-btn');
+        navButtons.forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.tab === tabName);
+        });
 
-    // Update tab contents - FIXED: Correct ID matching
-    const tabContents = document.querySelectorAll('.tab-content');
-    tabContents.forEach(tab => {
-        const shouldShow = tab.id === `${tabName}Tab`;
-        tab.classList.toggle('active', shouldShow);
-        console.log('Tab:', tab.id, 'Show:', shouldShow); // Debug
-    });
+        // Update tab contents
+        const tabContents = document.querySelectorAll('.tab-content');
+        tabContents.forEach(tab => {
+            tab.classList.toggle('active', tab.id === `${tabName}Tab`);
+        });
 
-    // Load tab-specific data
-    switch(tabName) {
-        case 'list':
-            this.renderItems();
-            this.updateStats();
-            break;
-        case 'purchases':
+        // Load tab-specific data
+        if (tabName === 'purchases') {
             this.updatePurchaseItemsList();
             this.updateRecentPurchases();
-            this.updateStats();
-            break;
-        case 'family':
+        } else if (tabName === 'family') {
             this.loadFamilyTab();
-            this.updateFamilyStats();
-            break;
-        case 'settings':
+        } else if (tabName === 'settings') {
             this.loadSettingsTab();
-            break;
+        }
     }
-}
 
     loadFamilyTab() {
         const familyMembersList = document.getElementById('familyMembersList');
