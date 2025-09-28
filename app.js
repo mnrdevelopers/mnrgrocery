@@ -18,6 +18,7 @@ class GroceryApp {
     async init() {
         await this.checkAuthState();
         this.setupEventListeners();
+        this.startUsernameAnimationCycle();
     }
 
   async checkAuthState() {
