@@ -2284,3 +2284,120 @@ button:disabled:hover {
     color: var(--text-secondary);
     font-style: italic;
 }
+
+
+/* Add to app.css - Action buttons in purchase table */
+.actions-cell {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+}
+
+.table-action-btn {
+    padding: 6px 12px;
+    border: none;
+    border-radius: var(--radius);
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 60px;
+    justify-content: center;
+}
+
+.edit-btn {
+    background: var(--primary-light);
+    color: var(--primary-dark);
+}
+
+.edit-btn:hover {
+    background: var(--primary);
+    color: white;
+    transform: translateY(-1px);
+}
+
+.delete-btn-purchase {
+    background: var(--danger-light);
+    color: var(--danger);
+}
+
+.delete-btn-purchase:hover {
+    background: var(--danger);
+    color: white;
+    transform: translateY(-1px);
+}
+
+/* Responsive adjustments for action buttons */
+@media (max-width: 768px) {
+    .actions-cell {
+        justify-content: space-between;
+    }
+    
+    .table-action-btn {
+        flex: 1;
+        min-width: auto;
+    }
+    
+    .purchases-table-container .table-header {
+        grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+    }
+    
+    .purchase-table-row {
+        grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+    }
+}
+
+/* Update the existing responsive CSS in app.css */
+@media (max-width: 768px) {
+    .purchases-table-container .table-header {
+        grid-template-columns: 1fr;
+        display: none;
+    }
+    
+    .purchase-table-row {
+        grid-template-columns: 1fr;
+        gap: 0;
+        padding: 15px;
+        border: 1px solid var(--divider);
+        border-radius: var(--radius);
+        margin-bottom: 10px;
+    }
+    
+    .purchase-table-cell {
+        padding: 8px 0;
+        justify-content: space-between;
+        border-bottom: 1px solid var(--divider);
+    }
+    
+    .purchase-table-cell:last-child {
+        border-bottom: none;
+    }
+    
+    .purchase-table-cell::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        font-size: 0.75rem;
+    }
+    
+    .actions-cell::before { content: "Actions"; }
+    
+    .purchases-summary {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    /* Action buttons on mobile */
+    .actions-cell {
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .table-action-btn {
+        width: 100%;
+    }
+}
