@@ -671,51 +671,58 @@ async createFamily() {
         }
     }
 
-    renderItems() {
-        const pendingItemsContainer = document.getElementById('pending-items');
-        const completedItemsContainer = document.getElementById('completed-items');
-        if (!pendingItemsContainer || !completedItemsContainer) return;
+   renderItems() {
+    const pendingItemsContainer = document.getElementById('pending-items');
+    const completedItemsBody = document.getElementById('completed-items-body');
+    const completedEmpty = document.getElementById('completed-empty');
+    
+    if (!pendingItemsContainer || !completedItemsBody || !completedEmpty) return;
 
-        let filteredItems = this.groceryItems.filter(item => {
-            const matchesCategory = this.currentFilter === 'all' || 
-                                  (this.currentFilter === 'urgent' ? item.isUrgent : 
-                                  (this.currentFilter === 'claimed' ? item.claimedBy : 
-                                  (this.currentFilter === 'recurring' ? item.isRecurring : item.category === this.currentFilter)));
-            const matchesSearch = item.name.toLowerCase().includes(this.currentSearch);
-            return matchesCategory && matchesSearch;
-        });
+    let filteredItems = this.groceryItems.filter(item => {
+        const matchesCategory = this.currentFilter === 'all' || 
+                              (this.currentFilter === 'urgent' ? item.isUrgent : 
+                              (this.currentFilter === 'claimed' ? item.claimedBy : 
+                              (this.currentFilter === 'recurring' ? item.isRecurring : item.category === this.currentFilter)));
+        const matchesSearch = item.name.toLowerCase().includes(this.currentSearch);
+        return matchesCategory && matchesSearch;
+    });
 
-        const pendingItems = filteredItems.filter(item => !item.completed);
-        const completedItems = filteredItems.filter(item => item.completed);
+    const pendingItems = filteredItems.filter(item => !item.completed);
+    const completedItems = filteredItems.filter(item => item.completed);
 
-        // Render pending items
-        if (pendingItems.length > 0) {
-            pendingItemsContainer.innerHTML = pendingItems.map(item => this.createItemHTML(item)).join('');
-        } else {
-            pendingItemsContainer.innerHTML = `
-                <div class="empty-state">
-                    <div class="empty-state-icon">🛒</div>
-                    <p>No items to buy</p>
-                    <button class="outline" onclick="app.focusItemInput()">Add Your First Item</button>
-                </div>
-            `;
-        }
-
-        // Render completed items
-        if (completedItems.length > 0) {
-            completedItemsContainer.innerHTML = completedItems.map(item => this.createItemHTML(item)).join('');
-        } else {
-            completedItemsContainer.innerHTML = `
-                <div class="empty-state">
-                    <div class="empty-state-icon">✅</div>
-                    <p>No purchased items yet</p>
-                </div>
-            `;
-        }
-
-        // Add event listeners
-        this.addItemEventListeners();
+    // Render pending items
+    if (pendingItems.length > 0) {
+        pendingItemsContainer.innerHTML = pendingItems.map(item => this.createItemHTML(item)).join('');
+    } else {
+        pendingItemsContainer.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon">🛒</div>
+                <p>No items to buy</p>
+                <button class="outline" onclick="app.focusItemInput()">Add Your First Item</button>
+            </div>
+        `;
     }
+
+    // Render completed items in TABLE format
+    completedItemsBody.innerHTML = '';
+    
+    if (completedItems.length > 0) {
+        completedEmpty.style.display = 'none';
+        completedItemsBody.style.display = 'block';
+        
+        completedItems.forEach(item => {
+            const row = document.createElement('div');
+            row.className = 'purchased-item-row';
+            row.innerHTML = this.createPurchasedItemRowHTML(item);
+            completedItemsBody.appendChild(row);
+        });
+    } else {
+        completedEmpty.style.display = 'block';
+        completedItemsBody.style.display = 'none';
+    }
+
+    this.addItemEventListeners();
+}
 
     focusItemInput() {
         const itemInput = document.getElementById('itemInput');
@@ -830,6 +837,50 @@ async createFamily() {
             </div>
         `;
     }
+
+    createPurchasedItemRowHTML(item) {
+    const categoryIcons = {
+        'fruits': '🍎',
+        'dairy': '🥛',
+        'meat': '🍗',
+        'bakery': '🍞',
+        'beverages': '🥤',
+        'snacks': '🍿',
+        'household': '🏠',
+        'personal': '🧴',
+        'frozen': '🧊',
+        'grains': '🌾',
+        'other': '📦',
+        'uncategorized': '📦'
+    };
+
+    const icon = categoryIcons[item.category] || '📦';
+    const formattedDate = Utils.formatDate(item.purchaseDate);
+    const addedByName = item.addedByName || 'User';
+
+    return `
+        <div class="purchased-item-cell item-name-cell" data-label="Item">
+            <span class="item-icon">${icon}</span>
+            <span>${item.name}</span>
+        </div>
+        <div class="purchased-item-cell quantity-cell" data-label="Quantity">
+            ${item.quantity} ${item.unit}
+        </div>
+        <div class="purchased-item-cell price-cell" data-label="Price">
+            ₹${item.price?.toFixed(2) || '0.00'}
+        </div>
+        <div class="purchased-item-cell store-cell" data-label="Store">
+            ${item.store || '-'}
+        </div>
+        <div class="purchased-item-cell date-cell" data-label="Date">
+            ${formattedDate}
+        </div>
+        <div class="purchased-item-cell added-by-cell" data-label="Added By">
+            <div class="added-by-avatar">${addedByName.charAt(0).toUpperCase()}</div>
+            <span>${addedByName}</span>
+        </div>
+    `;
+}
 
     handleSearch(e) {
         this.currentSearch = e.target.value.toLowerCase();
@@ -1206,17 +1257,17 @@ startUsernameAnimationCycle() {
     }
 
     toggleCompletedVisibility() {
-        this.completedVisible = !this.completedVisible;
-        const completedItemsContainer = document.getElementById('completed-items');
-        const toggleCompleted = document.getElementById('toggleCompleted');
-        
-        if (completedItemsContainer) {
-            completedItemsContainer.style.display = this.completedVisible ? 'block' : 'none';
-        }
-        if (toggleCompleted) {
-            toggleCompleted.textContent = this.completedVisible ? 'Hide' : 'Show';
-        }
+    this.completedVisible = !this.completedVisible;
+    const completedItemsContainer = document.getElementById('completed-items');
+    const toggleCompleted = document.getElementById('toggleCompleted');
+    
+    if (completedItemsContainer) {
+        completedItemsContainer.style.display = this.completedVisible ? 'block' : 'none';
     }
+    if (toggleCompleted) {
+        toggleCompleted.textContent = this.completedVisible ? 'Hide Table' : 'Show Table';
+    }
+}
 
     async debugUserStatus() {
     console.log('=== DEBUG USER STATUS ===');
