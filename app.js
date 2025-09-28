@@ -919,19 +919,60 @@ async createFamily() {
         }
     }
 
-    async updateHeaderUsername() {
+ async updateHeaderUsername() {
     const headerUsername = document.getElementById('headerUsername');
     if (headerUsername && this.currentUser) {
         try {
             const userDoc = await db.collection('users').doc(this.currentUser.uid).get();
             if (userDoc.exists) {
                 const userData = userDoc.data();
-                headerUsername.textContent = userData.name || 'User';
+                const userName = userData.name || 'User';
+                
+                // Remove any existing animation classes
+                headerUsername.className = 'username';
+                
+                // Add new animation based on username length or other criteria
+                if (userName.length <= 8) {
+                    headerUsername.classList.add('bounce'); // Short names get bounce
+                } else if (userName.length <= 15) {
+                    headerUsername.classList.add('pulse'); // Medium names get pulse
+                } else {
+                    headerUsername.classList.add('glow'); // Long names get glow
+                }
+                
+                headerUsername.textContent = userName;
+                
+                // Add a subtle hover effect
+                headerUsername.style.transition = 'all 0.3s ease';
+                headerUsername.addEventListener('mouseenter', () => {
+                    headerUsername.style.transform = 'scale(1.1)';
+                    headerUsername.style.textShadow = '0 0 15px rgba(255,255,255,0.5)';
+                });
+                headerUsername.addEventListener('mouseleave', () => {
+                    headerUsername.style.transform = 'scale(1)';
+                    headerUsername.style.textShadow = 'none';
+                });
             }
         } catch (error) {
             console.error('Error updating header username:', error);
         }
     }
+}
+
+    // Optional: Cycle through different animations
+startUsernameAnimationCycle() {
+    const headerUsername = document.getElementById('headerUsername');
+    if (!headerUsername) return;
+    
+    const animations = ['pulse', 'bounce', 'glow'];
+    let currentAnimation = 0;
+    
+    // Change animation every 10 seconds
+    setInterval(() => {
+        headerUsername.className = 'username';
+        headerUsername.classList.add(animations[currentAnimation]);
+        currentAnimation = (currentAnimation + 1) % animations.length;
+    }, 10000);
 }
 
     updateStats() {
