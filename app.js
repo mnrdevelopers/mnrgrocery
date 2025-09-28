@@ -932,26 +932,18 @@ async createFamily() {
                 // Remove any existing animation classes
                 headerUsername.className = 'username';
                 
-                // Add new animation based on username length or other criteria
-                if (userName.length <= 8) {
-                    headerUsername.classList.add('bounce'); // Short names get bounce
-                } else if (userName.length <= 15) {
-                    headerUsername.classList.add('pulse'); // Medium names get pulse
-                } else {
-                    headerUsername.classList.add('glow'); // Long names get glow
-                }
+                // Use color cycle animation with the new palette
+                headerUsername.classList.add('color-cycle');
                 
                 headerUsername.textContent = userName;
                 
-                // Add a subtle hover effect
+                // Add hover effect with new colors
                 headerUsername.style.transition = 'all 0.3s ease';
                 headerUsername.addEventListener('mouseenter', () => {
                     headerUsername.style.transform = 'scale(1.1)';
-                    headerUsername.style.textShadow = '0 0 15px rgba(255,255,255,0.5)';
                 });
                 headerUsername.addEventListener('mouseleave', () => {
                     headerUsername.style.transform = 'scale(1)';
-                    headerUsername.style.textShadow = 'none';
                 });
             }
         } catch (error) {
