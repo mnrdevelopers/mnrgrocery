@@ -598,6 +598,7 @@ autoSwitchTabOnError(errorCode, context) {
                 break;
         }
     }, 1500);
+  }
 }
 
 // Initialize auth manager when DOM is loaded
