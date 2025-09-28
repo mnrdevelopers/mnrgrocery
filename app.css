@@ -1410,9 +1410,141 @@ button:disabled:hover {
     opacity: 0.8;
 }
 
+/* Username animation */
 .username {
     font-weight: 700;
     font-size: 0.9rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.username::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: -100%;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent);
+    animation: usernameShimmer 3s ease-in-out infinite;
+}
+
+@keyframes usernameShimmer {
+    0% {
+        left: -100%;
+        opacity: 0;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        left: 100%;
+        opacity: 0;
+    }
+}
+
+/* Pulse animation for username */
+.username.pulse {
+    animation: usernamePulse 2s ease-in-out infinite;
+}
+
+@keyframes usernamePulse {
+    0%, 100% {
+        transform: scale(1);
+        text-shadow: 0 0 0 rgba(255, 255, 255, 0);
+    }
+    50% {
+        transform: scale(1.05);
+        text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+    }
+}
+
+/* Bounce animation for username */
+.username.bounce {
+    display: inline-block;
+    animation: usernameBounce 2s ease-in-out infinite;
+}
+
+@keyframes usernameBounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-3px);
+    }
+}
+
+/* Color cycle animation */
+.username.color-cycle {
+    background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #feca57);
+    background-size: 400% 400%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: colorCycle 4s ease-in-out infinite;
+}
+
+@keyframes colorCycle {
+    0%, 100% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+}
+
+/* Glow effect */
+.username.glow {
+    animation: usernameGlow 3s ease-in-out infinite;
+}
+
+@keyframes usernameGlow {
+    0%, 100% {
+        text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+    }
+    50% {
+        text-shadow: 0 0 20px rgba(255, 255, 255, 0.8), 0 0 30px rgba(255, 255, 255, 0.4);
+    }
+}
+
+/* Typewriter effect (for longer usernames) */
+.username.typewriter {
+    overflow: hidden;
+    border-right: 2px solid rgba(255, 255, 255, 0.8);
+    white-space: nowrap;
+    animation: typing 3.5s steps(40, end), blink-caret 0.75s step-end infinite;
+}
+
+@keyframes typing {
+    from { width: 0 }
+    to { width: 100% }
+}
+
+@keyframes blink-caret {
+    from, to { border-color: transparent }
+    50% { border-color: rgba(255, 255, 255, 0.8) }
+}
+
+/* Animation controls */
+.username.animated {
+    animation-duration: 2s;
+    animation-iteration-count: infinite;
+}
+
+/* Responsive adjustments for animations */
+@media (max-width: 768px) {
+    .username {
+        font-size: 0.85rem;
+    }
+    
+    /* Reduce animation intensity on mobile */
+    .username.pulse {
+        animation-duration: 3s;
+    }
+    
+    .username.bounce {
+        animation-duration: 3s;
+    }
 }
 
 /* Divider */
