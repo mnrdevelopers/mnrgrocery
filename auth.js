@@ -274,27 +274,36 @@ class AuthManager {
         }
     }
 
-    setButtonLoading(button, isLoading) {
-        if (button) {
-            if (isLoading) {
-                button.disabled = true;
-                button.classList.add('loading');
-                button.innerHTML = button.innerHTML.replace(/<i[^>]*><\/i>/, '<i class="fas fa-spinner"></i>');
-            } else {
-                button.disabled = false;
-                button.classList.remove('loading');
-                // Restore original icon based on button type
-                if (button.id === 'loginBtn') {
-                    button.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login to Your Account';
-                } else if (button.id === 'signupBtn') {
-                    button.innerHTML = '<i class="fas fa-user-plus"></i> Create New Account';
-                } else if (button.id === 'resetPasswordBtn') {
-                    button.innerHTML = '<i class="fas fa-paper-plane"></i> Send Reset Link';
-                }
+   setButtonLoading(button, isLoading) {
+    if (button) {
+        const btnText = button.querySelector('.btn-text');
+        const btnIcon = button.querySelector('.btn-icon');
+        
+        if (isLoading) {
+            button.disabled = true;
+            button.classList.add('loading');
+            
+            // Hide text and icon smoothly
+            if (btnText) btnText.style.opacity = '0';
+            if (btnIcon) btnIcon.style.opacity = '0';
+            
+        } else {
+            button.disabled = false;
+            button.classList.remove('loading');
+            
+            // Show text and icon smoothly
+            if (btnText) {
+                btnText.style.opacity = '1';
+                btnText.style.transform = 'translateY(0)';
+            }
+            if (btnIcon) {
+                btnIcon.style.opacity = '1';
+                btnIcon.style.transform = 'scale(1)';
             }
         }
     }
-
+}
+    
     async login() {
         try {
             const email = document.getElementById('loginEmail')?.value.trim();
