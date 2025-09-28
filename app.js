@@ -167,7 +167,7 @@ class GroceryApp {
         if (purchaseItemSelect) purchaseItemSelect.addEventListener('change', () => this.updatePurchaseForm());
         if (addPriceBtn) addPriceBtn.addEventListener('click', () => this.switchTab('purchases'));
 
-        // NEW: Purchase filter listeners
+        // Purchase filter listeners
         const categoryFilter = document.getElementById('purchaseCategoryFilter');
         const storeFilter = document.getElementById('purchaseStoreFilter');
         const monthFilter = document.getElementById('purchaseMonthFilter');
@@ -178,21 +178,20 @@ class GroceryApp {
         if (monthFilter) monthFilter.addEventListener('change', () => this.renderPurchaseTable());
         if (clearFilters) clearFilters.addEventListener('click', () => this.clearPurchaseFilters());
 
-          // NEW: Purchase table action listeners
-    document.addEventListener('click', (e) => {
-        if (e.target.closest('.edit-btn')) {
-            const button = e.target.closest('.edit-btn');
-            const itemId = button.dataset.id;
-            this.editPurchaseItem(itemId);
-        }
-        
-        if (e.target.closest('.delete-btn-purchase')) {
-            const button = e.target.closest('.delete-btn-purchase');
-            const itemId = button.dataset.id;
-            this.deletePurchaseItem(itemId);
-        }
-    });
-}
+        // Purchase table action listeners
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.edit-btn')) {
+                const button = e.target.closest('.edit-btn');
+                const itemId = button.dataset.id;
+                this.editPurchaseItem(itemId);
+            }
+            
+            if (e.target.closest('.delete-btn-purchase')) {
+                const button = e.target.closest('.delete-btn-purchase');
+                const itemId = button.dataset.id;
+                this.deletePurchaseItem(itemId);
+            }
+        });
 
         // Actions
         const copyFamilyCodeBtn = document.getElementById('copyFamilyCode');
@@ -264,71 +263,71 @@ class GroceryApp {
         }
     }
 
-async editPurchaseItem(itemId) {
-    const item = this.groceryItems.find(item => item.id === itemId);
-    if (!item) {
-        Utils.showToast('Item not found');
-        return;
-    }
+    async editPurchaseItem(itemId) {
+        const item = this.groceryItems.find(item => item.id === itemId);
+        if (!item) {
+            Utils.showToast('Item not found');
+            return;
+        }
 
-    // Create edit form
-    const newPrice = prompt('Enter new price (₹):', item.price || '');
-    if (newPrice === null) return; // User cancelled
-    
-    const price = parseFloat(newPrice);
-    if (isNaN(price) || price <= 0) {
-        Utils.showToast('Please enter a valid price');
-        return;
-    }
-
-    const newStore = prompt('Enter store name:', item.store || '');
-    if (newStore === null) return; // User cancelled
-    
-    if (!newStore.trim()) {
-        Utils.showToast('Please enter a store name');
-        return;
-    }
-
-    const newDate = prompt('Enter purchase date (YYYY-MM-DD):', item.purchaseDate || '');
-    if (newDate === null) return; // User cancelled
-
-    try {
-        await db.collection('items').doc(itemId).update({
-            price: price,
-            store: newStore.trim(),
-            purchaseDate: newDate || item.purchaseDate
-        });
+        // Create edit form
+        const newPrice = prompt('Enter new price (₹):', item.price || '');
+        if (newPrice === null) return; // User cancelled
         
-        Utils.showToast('Purchase updated successfully');
-    } catch (error) {
-        console.error('Error updating purchase:', error);
-        Utils.showToast('Error updating purchase: ' + error.message);
-    }
-}
+        const price = parseFloat(newPrice);
+        if (isNaN(price) || price <= 0) {
+            Utils.showToast('Please enter a valid price');
+            return;
+        }
 
-// NEW: Delete purchase item (remove price but keep item)
-async deletePurchaseItem(itemId) {
-    if (!confirm('Are you sure you want to remove the purchase information for this item? The item will remain in your list but the price will be removed.')) {
-        return;
-    }
-
-    try {
-        await db.collection('items').doc(itemId).update({
-            price: null,
-            store: null,
-            purchaseDate: null,
-            completed: false,
-            completedBy: null,
-            completedAt: null,
-            completedByName: null
-        });
+        const newStore = prompt('Enter store name:', item.store || '');
+        if (newStore === null) return; // User cancelled
         
-        Utils.showToast('Purchase information removed');
-    } catch (error) {
-        console.error('Error removing purchase info:', error);
-        Utils.showToast('Error removing purchase info: ' + error.message);
+        if (!newStore.trim()) {
+            Utils.showToast('Please enter a store name');
+            return;
+        }
+
+        const newDate = prompt('Enter purchase date (YYYY-MM-DD):', item.purchaseDate || '');
+        if (newDate === null) return; // User cancelled
+
+        try {
+            await db.collection('items').doc(itemId).update({
+                price: price,
+                store: newStore.trim(),
+                purchaseDate: newDate || item.purchaseDate
+            });
+            
+            Utils.showToast('Purchase updated successfully');
+        } catch (error) {
+            console.error('Error updating purchase:', error);
+            Utils.showToast('Error updating purchase: ' + error.message);
+        }
     }
-}
+
+    // Delete purchase item (remove price but keep item)
+    async deletePurchaseItem(itemId) {
+        if (!confirm('Are you sure you want to remove the purchase information for this item? The item will remain in your list but the price will be removed.')) {
+            return;
+        }
+
+        try {
+            await db.collection('items').doc(itemId).update({
+                price: null,
+                store: null,
+                purchaseDate: null,
+                completed: false,
+                completedBy: null,
+                completedAt: null,
+                completedByName: null
+            });
+            
+            Utils.showToast('Purchase information removed');
+        } catch (error) {
+            console.error('Error removing purchase info:', error);
+            Utils.showToast('Error removing purchase info: ' + error.message);
+        }
+    }
 
     async createFamily() {
         const familyCode = Utils.generateFamilyCode();
@@ -486,7 +485,7 @@ async deletePurchaseItem(itemId) {
                     this.renderItems();
                     this.updateStats();
                     this.updatePurchaseItemsList();
-                    this.renderPurchaseTable(); // NEW: Update purchase table
+                    this.renderPurchaseTable();
                     this.updateFamilyStats();
                     
                 }, (error) => {
@@ -761,7 +760,7 @@ async deletePurchaseItem(itemId) {
         }
     }
 
-    // NEW: Render purchase table
+    // Render purchase table
     renderPurchaseTable() {
         const tableBody = document.getElementById('purchases-table-body');
         const emptyState = document.getElementById('purchases-empty');
@@ -770,11 +769,11 @@ async deletePurchaseItem(itemId) {
         
         if (!tableBody || !emptyState) return;
 
-         // Update grid templates for header and rows
-    const tableHeader = tableBody.previousElementSibling;
-    if (tableHeader && tableHeader.classList.contains('table-header')) {
-        tableHeader.style.gridTemplateColumns = '2fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr';
-    }
+        // Update grid templates for header and rows
+        const tableHeader = tableBody.previousElementSibling;
+        if (tableHeader && tableHeader.classList.contains('table-header')) {
+            tableHeader.style.gridTemplateColumns = '2fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr';
+        }
 
         const purchasedItems = this.groceryItems.filter(item => item.price && item.price > 0);
         
@@ -805,7 +804,7 @@ async deletePurchaseItem(itemId) {
             filteredPurchases.forEach(item => {
                 const row = document.createElement('div');
                 row.className = 'purchase-table-row';
-                row.style.gridTemplateColumns = '2fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr'; // NEW: 8 columns
+                row.style.gridTemplateColumns = '2fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr';
                 
                 row.innerHTML = this.createPurchaseTableRowHTML(item);
                 tableBody.appendChild(row);
@@ -821,7 +820,7 @@ async deletePurchaseItem(itemId) {
         if (filteredTotal) filteredTotal.textContent = `₹${totalAmount.toFixed(2)}`;
     }
 
-    // NEW: Create purchase table row
+    // Create purchase table row
     createPurchaseTableRowHTML(item) {
         const categoryLabels = {
             'fruits': '🍎 Fruits',
@@ -866,21 +865,21 @@ async deletePurchaseItem(itemId) {
                 <span>${addedByName}</span>
             </div>
             <div class="purchase-table-cell actions-cell" data-label="Actions">
-            ${isAddedByCurrentUser ? `
-                <button class="table-action-btn edit-btn" data-id="${item.id}">
-                    <span>✏️</span> Edit
-                </button>
-                <button class="table-action-btn delete-btn-purchase" data-id="${item.id}">
-                    <span>🗑️</span> Delete
-                </button>
-        ` : `
-                <span class="text-secondary">-</span>
-            `}
-        </div>
-    `;
-}
+                ${isAddedByCurrentUser ? `
+                    <button class="table-action-btn edit-btn" data-id="${item.id}">
+                        <span>✏️</span> Edit
+                    </button>
+                    <button class="table-action-btn delete-btn-purchase" data-id="${item.id}">
+                        <span>🗑️</span> Delete
+                    </button>
+                ` : `
+                    <span class="text-secondary">-</span>
+                `}
+            </div>
+        `;
+    }
 
-    // NEW: Clear purchase filters
+    // Clear purchase filters
     clearPurchaseFilters() {
         const categoryFilter = document.getElementById('purchaseCategoryFilter');
         const storeFilter = document.getElementById('purchaseStoreFilter');
@@ -893,7 +892,7 @@ async deletePurchaseItem(itemId) {
         this.renderPurchaseTable();
     }
 
-    // NEW: Update purchase filters
+    // Update purchase filters
     updatePurchaseFilters() {
         const storeFilter = document.getElementById('purchaseStoreFilter');
         if (!storeFilter) return;
@@ -1086,8 +1085,8 @@ async deletePurchaseItem(itemId) {
 
         if (tabName === 'purchases') {
             this.updatePurchaseItemsList();
-            this.renderPurchaseTable(); // NEW: Use renderPurchaseTable instead of updateRecentPurchases
-            this.updatePurchaseFilters(); // NEW: Update filter options
+            this.renderPurchaseTable();
+            this.updatePurchaseFilters();
         } else if (tabName === 'family') {
             this.loadFamilyTab();
         } else if (tabName === 'settings') {
