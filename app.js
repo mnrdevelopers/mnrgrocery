@@ -1,24 +1,57 @@
 // Main application functionality
-class GroceryApp {
-    constructor() {
-        this.currentUser = null;
-        this.currentFamily = null;
-        this.groceryItems = [];
-        this.familyMembers = [];
-        this.currentFilter = 'all';
-        this.currentSearch = '';
-        this.itemsUnsubscribe = null;
-        this.familyUnsubscribe = null;
-        this.completedVisible = false;
-        this.userPreferences = {};
-        
-        this.init();
-    }
+constructor() {
+    this.currentUser = null;
+    this.currentFamily = null;
+    this.groceryItems = [];
+    this.familyMembers = [];
+    this.currentFilter = 'all';
+    this.currentSearch = '';
+    this.itemsUnsubscribe = null;
+    this.familyUnsubscribe = null;
+    this.completedVisible = false;
+    this.userPreferences = {};
+    
+    // Show loading screen immediately
+    this.showScreen('loading');
+    
+    // Wait for DOM to be fully ready
+    document.addEventListener('DOMContentLoaded', () => {
+        this.waitForFirebase().then(() => {
+            this.init();
+        }).catch(error => {
+            console.error('Firebase not available:', error);
+            // Even if Firebase fails, show family setup after delay
+            setTimeout(() => {
+                this.showScreen('familySetup');
+                Utils.showToast('App initialization failed. Please check your connection.');
+            }, 2000);
+        });
+    });
+}
 
-    async init() {
-        await this.checkAuthState();
-        this.setupEventListeners();
-    }
+async waitForFirebase() {
+    return new Promise((resolve, reject) => {
+        const checkFirebase = () => {
+            if (typeof firebase !== 'undefined' && firebase.apps.length > 0 && firebase.auth) {
+                resolve();
+            } else {
+                setTimeout(checkFirebase, 100);
+            }
+        };
+        
+        checkFirebase();
+        
+        // Timeout after 10 seconds
+        setTimeout(() => {
+            reject(new Error('Firebase initialization timeout'));
+        }, 10000);
+    });
+}
+
+async init() {
+    await this.checkAuthState();
+    this.setupEventListeners();
+}
 
   async checkAuthState() {
     // Show loading screen immediately and keep it visible
