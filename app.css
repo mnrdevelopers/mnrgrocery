@@ -2401,3 +2401,28 @@ button:disabled:hover {
         width: 100%;
     }
 }
+
+/* Enhanced danger button styles */
+.settings-btn.danger {
+    border-color: var(--danger);
+    color: var(--danger);
+    background: linear-gradient(135deg, #FFF5F5 0%, #FFE8E8 100%);
+}
+
+.settings-btn.danger:hover {
+    background: var(--danger);
+    color: white;
+    border-color: var(--danger);
+    transform: translateX(5px) scale(1.02);
+}
+
+/* Additional warning styles */
+.warning-text {
+    color: var(--warning);
+    font-weight: 600;
+}
+
+.danger-text {
+    color: var(--danger);
+    font-weight: 700;
+}
