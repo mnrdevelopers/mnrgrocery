@@ -20,9 +20,17 @@ class GroceryApp {
         this.setupEventListeners();
     }
 
-   async checkAuthState() {
-    // Show loading screen immediately
+  async checkAuthState() {
+    // Show loading screen immediately with proper opacity
     this.showScreen('loading');
+    
+    // Force the loading screen to be visible
+    setTimeout(() => {
+        const loadingScreen = document.getElementById('loadingScreen');
+        if (loadingScreen) {
+            loadingScreen.style.opacity = '1';
+        }
+    }, 10);
     
     auth.onAuthStateChanged(async (user) => {
         if (user) {
@@ -38,7 +46,7 @@ class GroceryApp {
         }
     });
 }
-
+    
   async checkUserFamily() {
     if (!this.currentUser) {
         window.location.href = 'auth.html';
@@ -197,27 +205,39 @@ async createUserDocument() {
         if (purchaseDate) purchaseDate.value = today;
     }
 
-    showScreen(screen) {
-        const loadingScreen = document.getElementById('loadingScreen');
-        const familySetupScreen = document.getElementById('familySetupScreen');
-        const appScreen = document.getElementById('appScreen');
+   showScreen(screen) {
+    const loadingScreen = document.getElementById('loadingScreen');
+    const familySetupScreen = document.getElementById('familySetupScreen');
+    const appScreen = document.getElementById('appScreen');
 
-        // Hide all screens first
-        if (loadingScreen) loadingScreen.style.display = 'none';
-        if (familySetupScreen) familySetupScreen.style.display = 'none';
-        if (appScreen) appScreen.style.display = 'none';
-
-        // Show the requested screen
-        switch(screen) {
-            case 'familySetup':
-                if (familySetupScreen) familySetupScreen.style.display = 'block';
-                break;
-            case 'app':
-                if (appScreen) appScreen.style.display = 'block';
-                this.loadUserPreferences();
-                break;
-        }
+    // Hide all screens first
+    if (loadingScreen) {
+        loadingScreen.style.display = 'none';
+        loadingScreen.style.opacity = '0';
     }
+    if (familySetupScreen) familySetupScreen.style.display = 'none';
+    if (appScreen) appScreen.style.display = 'none';
+
+    // Show the requested screen
+    switch(screen) {
+        case 'loading':
+            if (loadingScreen) {
+                loadingScreen.style.display = 'flex';
+                // Force reflow before setting opacity
+                setTimeout(() => {
+                    loadingScreen.style.opacity = '1';
+                }, 10);
+            }
+            break;
+        case 'familySetup':
+            if (familySetupScreen) familySetupScreen.style.display = 'flex';
+            break;
+        case 'app':
+            if (appScreen) appScreen.style.display = 'block';
+            this.loadUserPreferences();
+            break;
+    }
+}
 
     hideLoadingScreen() {
         const loadingScreen = document.getElementById('loadingScreen');
