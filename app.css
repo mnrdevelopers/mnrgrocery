@@ -1,24 +1,34 @@
 :root {
-    --primary: #3B82F6;
-    --primary-dark: #2563EB;
-    --primary-light: #DBEAFE;
-    --secondary: #10B981;
-    --accent: #8B5CF6;
-    --danger: #EF4444;
-    --warning: #F59E0B;
-    --success: #10B981;
-    --info: #06B6D4;
-    --background: #F9FAFB;
-    --surface: #FFFFFF;
-    --text-primary: #1F2937;
-    --text-secondary: #6B7280;
-    --text-light: #9CA3AF;
-    --divider: #E5E7EB;
-    --border: #D1D5DB;
-    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    --shadow-md: 0 6px 10px -1px rgba(0, 0, 0, 0.1), 0 2px 6px -1px rgba(0, 0, 0, 0.06);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    --primary: #FF6868;       /* Main brand color */
+    --primary-dark: #FF6868;  /* Slightly darker for hover states */
+    --primary-light: #FFEAA7; /* Light accent */
+    --secondary: #FFBB64;     /* Secondary actions */
+    --accent: #DCFFB7;        /* Accent color */
+    --danger: #FF6868;        /* Error/danger (using primary for consistency) */
+    --warning: #FFBB64;       /* Warning */
+    --success: #DCFFB7;       /* Success */
+    --info: #FFBB64;          /* Info */
+    
+    /* Background and surface colors */
+    --background: #FFF9F0;    /* Warm light background */
+    --surface: #FFFFFF;       /* Card surfaces */
+    
+    /* Text colors */
+    --text-primary: #5A4B41;  /* Warm dark brown */
+    --text-secondary: #8B7D6B;/* Medium brown */
+    --text-light: #B8A897;    /* Light brown */
+    
+    /* UI colors */
+    --divider: #FFEAA7;       /* Warm light divider */
+    --border: #FFBB64;        /* Border color */
+    
+    /* Shadows with warm tones */
+    --shadow: 0 4px 6px -1px rgba(255, 104, 104, 0.1), 0 2px 4px -1px rgba(255, 187, 100, 0.06);
+    --shadow-md: 0 6px 10px -1px rgba(255, 104, 104, 0.1), 0 2px 6px -1px rgba(255, 187, 100, 0.08);
+    --shadow-lg: 0 10px 15px -3px rgba(255, 104, 104, 0.1), 0 4px 6px -2px rgba(255, 187, 100, 0.05);
+    --shadow-xl: 0 20px 25px -5px rgba(255, 104, 104, 0.1), 0 10px 10px -5px rgba(255, 187, 100, 0.04);
+    
+    /* Rest of the variables remain the same */
     --radius: 8px;
     --radius-md: 12px;
     --radius-lg: 16px;
@@ -34,7 +44,7 @@
 }
 
 body {
-    background: linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%);
+    background: linear-gradient(135deg, #FFF9F0 0%, #FFFAF5 100%);
     color: var(--text-primary);
     max-width: 100%;
     overflow-x: hidden;
@@ -50,7 +60,7 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -138,7 +148,7 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -148,7 +158,7 @@ body {
 
 /* Main App Styles */
 header {
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
     color: white;
     padding: 18px 20px;
     position: sticky;
@@ -184,22 +194,22 @@ header {
 }
 
 .primary {
-    background: var(--primary);
-    color: white;
-    border-color: var(--primary);
+   background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    color: var(--text-primary);
+    border-color: transparent;
 }
 
 .primary:hover {
-    background: var(--primary-dark);
+    background: linear-gradient(135deg, var(--secondary) 0%, var(--primary) 100%);
     border-color: var(--primary-dark);
     transform: translateY(-2px);
     box-shadow: var(--shadow-md);
 }
 
 .secondary {
-    background: var(--secondary);
-    color: white;
-    border-color: var(--secondary);
+     background: var(--accent);
+    color: var(--text-primary);
+    border-color: transparent;
 }
 
 .secondary:hover {
@@ -216,7 +226,7 @@ header {
 
 .outline:hover {
     background: var(--primary-light);
-    transform: translateY(-2px);
+    color: var(--text-primary);
 }
 
 .danger {
@@ -496,8 +506,8 @@ button:disabled:hover {
 
 /* Shopping Stats */
 .shopping-stats {
-    background: linear-gradient(135deg, var(--info) 0%, #06B6D4 100%);
-    color: white;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--success) 100%);
+    color: var(--text-primary);
     padding: 20px;
     border-radius: var(--radius-xl);
     margin-bottom: 25px;
@@ -712,9 +722,9 @@ button:disabled:hover {
 }
 
 .category-btn.active {
-    background: var(--primary);
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
     color: white;
-    border-color: var(--primary);
+    border-color: transparent;
     box-shadow: var(--shadow);
     transform: scale(1.05);
 }
@@ -803,12 +813,12 @@ button:disabled:hover {
 }
 
 .grocery-item.urgent::before {
-    background-color: var(--danger);
+    background-color: var(--primary);
     opacity: 1;
 }
 
 .grocery-item.claimed::before {
-    background-color: var(--warning);
+    background-color: var(--secondary);
     opacity: 1;
 }
 
@@ -829,7 +839,7 @@ button:disabled:hover {
 
 .grocery-item.checked {
     opacity: 0.7;
-    background: linear-gradient(135deg, var(--primary-light) 0%, #E0F2FE 100%);
+    background: linear-gradient(135deg, var(--primary-light) 0%, #FFF5E1 100%);
 }
 
 .checkbox {
@@ -1064,7 +1074,7 @@ button:disabled:hover {
     align-items: center;
     gap: 20px;
     padding: 20px;
-    background: linear-gradient(135deg, var(--primary-light) 0%, #E0F2FE 100%);
+    background: linear-gradient(135deg, var(--primary-light) 0%, #FFF5E1 100%);
     border-radius: var(--radius-lg);
     margin-bottom: 25px;
     border: 1px solid var(--primary-light);
@@ -1109,7 +1119,7 @@ button:disabled:hover {
 }
 
 .family-info-settings {
-    background: linear-gradient(135deg, var(--primary-light) 0%, #E0F2FE 100%);
+    background: linear-gradient(135deg, var(--primary-light) 0%, #FFF5E1 100%);
     padding: 25px;
     border-radius: var(--radius-lg);
     margin-bottom: 25px;
@@ -1238,15 +1248,15 @@ button:disabled:hover {
 }
 
 .danger-zone {
-    border: 2px solid var(--danger);
+    border: 2px solid var(--primary);
     border-radius: var(--radius-xl);
     padding: 25px;
     margin-top: 30px;
-    background: linear-gradient(135deg, #FEF2F2 0%, #FEE2E2 100%);
+    background: linear-gradient(135deg, #FFF5F5 0%, #FFE8E8 100%);
 }
 
 .danger-zone h3 {
-    color: var(--danger);
+    color: var(--primary);
     margin-bottom: 20px;
     text-align: center;
     font-weight: 700;
@@ -1495,7 +1505,7 @@ button:disabled:hover {
 
 /* Color cycle animation */
 .username.color-cycle {
-    background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #feca57);
+    background: linear-gradient(45deg, var(--primary), var(--secondary), var(--accent), var(--primary-light));
     background-size: 400% 400%;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -1519,10 +1529,10 @@ button:disabled:hover {
 
 @keyframes usernameGlow {
     0%, 100% {
-        text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+        text-shadow: 0 0 5px rgba(255, 104, 104, 0.3);
     }
     50% {
-        text-shadow: 0 0 20px rgba(255, 255, 255, 0.8), 0 0 30px rgba(255, 255, 255, 0.4);
+        text-shadow: 0 0 20px rgba(255, 104, 104, 0.6), 0 0 30px rgba(255, 187, 100, 0.4);
     }
 }
 
