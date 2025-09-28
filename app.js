@@ -155,6 +155,17 @@ async createUserDocument() {
         if (purchaseItemSelect) purchaseItemSelect.addEventListener('change', () => this.updatePurchaseForm());
         if (addPriceBtn) addPriceBtn.addEventListener('click', () => this.switchTab('purchases'));
 
+        // Add quick add functionality
+const quickAddBtn = document.getElementById('quickAddBtn');
+const quickItemInput = document.getElementById('quickItemInput');
+
+if (quickAddBtn && quickItemInput) {
+    quickAddBtn.addEventListener('click', () => this.quickAddItem());
+    quickItemInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') this.quickAddItem();
+    });
+}
+
         // Actions
         const copyFamilyCodeBtn = document.getElementById('copyFamilyCode');
         const changeNameBtn = document.getElementById('changeNameBtn');
@@ -956,6 +967,12 @@ async createFamily() {
         if (monthlyTotalSpan) monthlyTotalSpan.textContent = `₹${monthlyTotal.toFixed(0)}`;
         if (monthlyAverageSpan) monthlyAverageSpan.textContent = `₹${monthlyAverage.toFixed(0)}`;
     }
+
+     const activeMembersSpan = document.getElementById('active-members');
+    if (activeMembersSpan) {
+        activeMembersSpan.textContent = this.familyMembers.length;
+    }
+}
 
     updateRecentPurchases() {
         const recentPurchasesList = document.getElementById('recent-purchases-list');
