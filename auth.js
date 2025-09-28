@@ -465,17 +465,20 @@ class AuthManager {
 
     handleAuthError(error, context) {
     let message = 'Authentication failed';
-    
+
     switch (error.code) {
-        case 'auth/invalid-login-credentials':
+        case 'auth/invalid-login-credentials':   // ✅ New unified error for v9+
             message = 'Invalid email or password';
             break;
+
+        // Legacy Firebase codes (still catch them in case they appear)
         case 'auth/user-not-found':
             message = 'No account found with this email';
             break;
         case 'auth/wrong-password':
             message = 'Incorrect password';
             break;
+
         case 'auth/invalid-email':
             message = 'Invalid email address';
             break;
@@ -491,13 +494,14 @@ class AuthManager {
         case 'auth/popup-blocked':
             message = 'Popup blocked by browser. Please allow popups for this site.';
             break;
+
         default:
+            console.error('Unhandled Firebase Auth error:', error);
             message = error.message || 'Authentication error';
     }
-    
+
     Utils.showToast(message, 'error');
 }
-
 
 // Initialize auth manager when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
