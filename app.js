@@ -371,22 +371,35 @@ async createFamily() {
     }
 }
 
-    async loadFamilyData() {
-        if (!this.currentFamily) return;
+  async loadFamilyData() {
+    if (!this.currentFamily) {
+        console.error('No current family set');
+        return;
+    }
 
-        // Unsubscribe from previous listeners
-        if (this.itemsUnsubscribe) this.itemsUnsubscribe();
-        if (this.familyUnsubscribe) this.familyUnsubscribe();
+    // Unsubscribe from previous listeners
+    if (this.itemsUnsubscribe) {
+        this.itemsUnsubscribe();
+        this.itemsUnsubscribe = null;
+    }
+    if (this.familyUnsubscribe) {
+        this.familyUnsubscribe();
+        this.familyUnsubscribe = null;
+    }
 
+    try {
         // Set up real-time listener for grocery items
         this.itemsUnsubscribe = db.collection('items')
             .where('familyId', '==', this.currentFamily)
             .onSnapshot((snapshot) => {
+                console.log('Items snapshot received:', snapshot.size, 'items');
+                
                 this.groceryItems = [];
                 snapshot.forEach((doc) => {
+                    const itemData = doc.data();
                     this.groceryItems.push({
                         id: doc.id,
-                        ...doc.data()
+                        ...itemData
                     });
                 });
 
@@ -397,14 +410,16 @@ async createFamily() {
                     return dateB - dateA;
                 });
 
+                console.log('Processed items:', this.groceryItems.length);
                 this.renderItems();
                 this.updateStats();
                 this.updatePurchaseItemsList();
                 this.updateRecentPurchases();
                 this.updateFamilyStats();
+                
             }, (error) => {
                 console.error('Error listening to items:', error);
-                Utils.showToast('Error loading items');
+                Utils.showToast('Error loading items: ' + error.message);
             });
 
         // Set up real-time listener for family members
@@ -412,15 +427,24 @@ async createFamily() {
             .onSnapshot(async (doc) => {
                 if (doc.exists) {
                     const familyData = doc.data();
-                    await this.loadFamilyMembers(familyData.members);
+                    console.log('Family data loaded:', familyData);
+                    await this.loadFamilyMembers(familyData.members || []);
                     const familyCodeDisplay = document.getElementById('familyCodeDisplay');
                     if (familyCodeDisplay) familyCodeDisplay.textContent = this.currentFamily;
+                } else {
+                    console.error('Family document not found');
+                    Utils.showToast('Family not found');
                 }
             }, (error) => {
                 console.error('Error listening to family:', error);
-                Utils.showToast('Error loading family data');
+                Utils.showToast('Error loading family data: ' + error.message);
             });
+
+    } catch (error) {
+        console.error('Error setting up listeners:', error);
+        Utils.showToast('Error setting up data listeners');
     }
+}
 
     async loadFamilyMembers(memberIds) {
         if (!memberIds || !Array.isArray(memberIds)) return;
@@ -1268,7 +1292,7 @@ startUsernameAnimationCycle() {
         }
     }
 
-    toggleCompletedVisibility() {
+   toggleCompletedVisibility() {
     this.completedVisible = !this.completedVisible;
     const completedItemsContainer = document.getElementById('completed-items');
     const toggleCompleted = document.getElementById('toggleCompleted');
@@ -1279,6 +1303,9 @@ startUsernameAnimationCycle() {
     if (toggleCompleted) {
         toggleCompleted.textContent = this.completedVisible ? 'Hide Table' : 'Show Table';
     }
+    
+    // Re-render to ensure items are displayed correctly
+    this.renderItems();
 }
 
     async debugUserStatus() {
