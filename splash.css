@@ -18,6 +18,14 @@ body {
     min-height: 100vh;
 }
 
+.splash-content {
+    transition: opacity 0.3s ease;
+}
+
+.auth-card {
+    transition: opacity 0.3s ease;
+}
+
 .splash-container {
     min-height: 100vh;
     display: flex;
