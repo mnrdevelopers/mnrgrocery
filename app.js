@@ -1002,9 +1002,8 @@ async createFamily() {
         if (monthlyPurchasesSpan) monthlyPurchasesSpan.textContent = monthlyPurchases.length;
         if (monthlyTotalSpan) monthlyTotalSpan.textContent = `₹${monthlyTotal.toFixed(0)}`;
         if (monthlyAverageSpan) monthlyAverageSpan.textContent = `₹${monthlyAverage.toFixed(0)}`;
-    }
 
-     const activeMembersSpan = document.getElementById('active-members');
+        const activeMembersSpan = document.getElementById('active-members');
     if (activeMembersSpan) {
         activeMembersSpan.textContent = this.familyMembers.length;
     }
