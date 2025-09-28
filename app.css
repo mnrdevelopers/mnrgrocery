@@ -1483,6 +1483,12 @@ button:disabled:hover {
     .stat-value {
         font-size: 1.2rem;
     }
+
+    .stats-grid {
+    display: ruby;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 15px;
+    }
     
     .user-welcome {
         padding: 6px 12px;
