@@ -94,12 +94,11 @@ Choose an option (1-4):
   `Hi! ${userName} has invited you to join *${familyName}* on FamilyGrocer!\n\n` +
   `*Family Code:* \`${this.app.currentFamily}\`\n\n` +
   `*How to join:*\n` +
-  `1. Open FamilyGrocer app 👉 https://familygrocer.netlify.app/\n` +
+  `1. [Open FamilyGrocer App](https://familygrocer.netlify.app/)\n` +
   `2. Tap "Join Family"\n` +
   `3. Enter this code: *${this.app.currentFamily}*\n\n` +
   `Let's make shopping easier together! 🎉\n\n` +
   `_Sent via FamilyGrocer_`;
-
 
         const encodedMessage = encodeURIComponent(message);
         const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
