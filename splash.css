@@ -1,8 +1,8 @@
 :root {
-    --primary: #3B82F6;
-    --primary-dark: #2563EB;
-    --primary-light: #DBEAFE;
-    --surface: #FFFFFF;
+    --primary: #FF6868;       /* Main brand color */
+    --primary-dark: #FF6868;  /* Slightly darker for hover states */
+    --primary-light: #FFEAA7; /* Light accent */
+    --surface: #FFFFFF;       /* Card surfaces */
 }
 
 * {
