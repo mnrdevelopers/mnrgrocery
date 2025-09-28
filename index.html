@@ -28,33 +28,53 @@
 
     <script src="js/firebase-config.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const getStartedBtn = document.getElementById('getStartedBtn');
-            const loginBtn = document.getElementById('loginBtn');
+    document.addEventListener('DOMContentLoaded', function() {
+        const getStartedBtn = document.getElementById('getStartedBtn');
+        const loginBtn = document.getElementById('loginBtn');
+        const splashContent = document.querySelector('.splash-content');
+        const loadingSpinner = document.querySelector('.loading-spinner');
 
-            getStartedBtn.addEventListener('click', () => {
-                window.location.href = 'auth.html?mode=signup';
-            });
+        // Show loading state immediately
+        if (splashContent) splashContent.style.opacity = '0.7';
+        
+        // Check auth state with timeout
+        const authCheckTimeout = setTimeout(() => {
+            // If still checking after 3 seconds, show buttons
+            if (splashContent) splashContent.style.opacity = '1';
+            if (loadingSpinner) loadingSpinner.style.display = 'none';
+        }, 3000);
+
+        // Check if user is already authenticated
+        firebase.auth().onAuthStateChanged((user) => {
+            clearTimeout(authCheckTimeout);
             
-            loginBtn.addEventListener('click', () => {
-                window.location.href = 'auth.html?mode=login';
-            });
+            if (user) {
+                // User is logged in, redirect immediately to app
+                window.location.href = 'app.html';
+            } else {
+                // User is not logged in, show the splash screen
+                if (splashContent) splashContent.style.opacity = '1';
+                if (loadingSpinner) loadingSpinner.style.display = 'none';
+                
+                // Set up button event listeners
+                getStartedBtn.addEventListener('click', () => {
+                    window.location.href = 'auth.html?mode=signup';
+                });
+                
+                loginBtn.addEventListener('click', () => {
+                    window.location.href = 'auth.html?mode=login';
+                });
 
-            // Check if user is already authenticated
-            firebase.auth().onAuthStateChanged((user) => {
-                if (user) {
-                    window.location.href = 'app.html';
-                }
-            });
-
-            // Add pulsing animation to buttons
-            setTimeout(() => {
-                getStartedBtn.style.transform = 'scale(1.05)';
+                // Add pulsing animation to buttons
                 setTimeout(() => {
-                    getStartedBtn.style.transform = 'scale(1)';
-                }, 500);
-            }, 1000);
+                    getStartedBtn.style.transform = 'scale(1.05)';
+                    setTimeout(() => {
+                        getStartedBtn.style.transform = 'scale(1)';
+                    }, 500);
+                }, 1000);
+            }
         });
-    </script>
+    });
+</script>
 </body>
 </html>
