@@ -90,15 +90,16 @@ Choose an option (1-4):
             console.log('Could not fetch family or user details');
         }
 
-        const message = `🏠 *FamilyGrocer Invitation* 🛒\n\n` +
-                       `Hi! ${userName} has invited you to join *${familyName}* on FamilyGrocer!\n\n` +
-                       `*Family Code:* \`${this.app.currentFamily}\`\n\n` +
-                       `*How to join:*\n` +
-                       `1. Open FamilyGrocer app\n` +
-                       `2. Tap "Join Family"\n` +
-                       `3. Enter this code: *${this.app.currentFamily}*\n\n` +
-                       `Let's make shopping easier together! 🎉\n\n` +
-                       `_Sent via FamilyGrocer_`;
+       const message = `🏠 *FamilyGrocer Invitation* 🛒\n\n` +
+  `Hi! ${userName} has invited you to join *${familyName}* on FamilyGrocer!\n\n` +
+  `*Family Code:* \`${this.app.currentFamily}\`\n\n` +
+  `*How to join:*\n` +
+  `1. Open FamilyGrocer app 👉 https://familygrocer.netlify.app/\n` +
+  `2. Tap "Join Family"\n` +
+  `3. Enter this code: *${this.app.currentFamily}*\n\n` +
+  `Let's make shopping easier together! 🎉\n\n` +
+  `_Sent via FamilyGrocer_`;
+
 
         const encodedMessage = encodeURIComponent(message);
         const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
