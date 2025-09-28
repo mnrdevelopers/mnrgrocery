@@ -10,10 +10,10 @@ class AuthManager {
         this.setupEventListeners();
         this.checkUrlParams();
         this.checkAuthState();
+        this.loadRememberedCredentials();
     }
 
     async checkFirebaseReady() {
-        // Wait for Firebase to be ready
         return new Promise((resolve) => {
             if (typeof firebase !== 'undefined' && firebase.apps.length > 0) {
                 resolve();
@@ -37,6 +37,17 @@ class AuthManager {
             if (loginTab) loginTab.addEventListener('click', () => this.switchTab('login'));
             if (signupTab) signupTab.addEventListener('click', () => this.switchTab('signup'));
             
+            // Password visibility toggles
+            const loginPasswordToggle = document.getElementById('loginPasswordToggle');
+            const signupPasswordToggle = document.getElementById('signupPasswordToggle');
+            
+            if (loginPasswordToggle) loginPasswordToggle.addEventListener('click', () => this.togglePasswordVisibility('loginPassword'));
+            if (signupPasswordToggle) signupPasswordToggle.addEventListener('click', () => this.togglePasswordVisibility('signupPassword'));
+            
+            // Password strength check
+            const signupPassword = document.getElementById('signupPassword');
+            if (signupPassword) signupPassword.addEventListener('input', () => this.checkPasswordStrength());
+            
             // Form submissions
             const loginBtn = document.getElementById('loginBtn');
             const signupBtn = document.getElementById('signupBtn');
@@ -59,6 +70,81 @@ class AuthManager {
             
         } catch (error) {
             console.error('Error setting up auth event listeners:', error);
+        }
+    }
+
+    togglePasswordVisibility(fieldId) {
+        const passwordField = document.getElementById(fieldId);
+        const toggleButton = document.getElementById(fieldId + 'Toggle');
+        
+        if (passwordField && toggleButton) {
+            const isPassword = passwordField.type === 'password';
+            passwordField.type = isPassword ? 'text' : 'password';
+            toggleButton.innerHTML = isPassword ? '<i class="fas fa-eye-slash"></i>' : '<i class="fas fa-eye"></i>';
+            toggleButton.classList.toggle('active', isPassword);
+        }
+    }
+
+    checkPasswordStrength() {
+        const passwordField = document.getElementById('signupPassword');
+        const strengthBar = document.getElementById('strengthFill');
+        const strengthText = document.getElementById('strengthText');
+        const strengthContainer = document.getElementById('passwordStrength');
+        
+        if (!passwordField || !strengthBar || !strengthText) return;
+        
+        const password = passwordField.value;
+        strengthContainer.classList.add('visible');
+        
+        let strength = 0;
+        let text = 'Weak';
+        let className = 'weak';
+        
+        if (password.length >= 6) strength += 25;
+        if (password.length >= 8) strength += 25;
+        if (/[A-Z]/.test(password)) strength += 25;
+        if (/[0-9]/.test(password)) strength += 15;
+        if (/[^A-Za-z0-9]/.test(password)) strength += 10;
+        
+        if (strength >= 65) {
+            text = 'Strong';
+            className = 'strong';
+        } else if (strength >= 35) {
+            text = 'Medium';
+            className = 'medium';
+        }
+        
+        strengthBar.className = 'strength-fill ' + className;
+        strengthText.textContent = text + ' password';
+    }
+
+    loadRememberedCredentials() {
+        try {
+            const rememberedEmail = localStorage.getItem('rememberedEmail');
+            const rememberMe = document.getElementById('rememberMe');
+            
+            if (rememberedEmail && rememberMe) {
+                const emailField = document.getElementById('loginEmail');
+                if (emailField) {
+                    emailField.value = rememberedEmail;
+                    rememberMe.checked = true;
+                }
+            }
+        } catch (error) {
+            console.error('Error loading remembered credentials:', error);
+        }
+    }
+
+    saveRememberedCredentials(email) {
+        try {
+            const rememberMe = document.getElementById('rememberMe');
+            if (rememberMe && rememberMe.checked) {
+                localStorage.setItem('rememberedEmail', email);
+            } else {
+                localStorage.removeItem('rememberedEmail');
+            }
+        } catch (error) {
+            console.error('Error saving remembered credentials:', error);
         }
     }
 
@@ -113,7 +199,6 @@ class AuthManager {
         auth.onAuthStateChanged((user) => {
             if (user) {
                 this.currentUser = user;
-                // Small delay to ensure everything is loaded
                 setTimeout(() => {
                     window.location.href = 'app.html';
                 }, 500);
@@ -150,6 +235,9 @@ class AuthManager {
             } else if (tab === 'signup') {
                 if (signupTab) signupTab.classList.add('active');
                 if (signupForm) signupForm.classList.add('active');
+                
+                // Reset password strength meter
+                this.checkPasswordStrength();
             }
         } catch (error) {
             console.error('Error switching tabs:', error);
@@ -186,10 +274,32 @@ class AuthManager {
         }
     }
 
+    setButtonLoading(button, isLoading) {
+        if (button) {
+            if (isLoading) {
+                button.disabled = true;
+                button.classList.add('loading');
+                button.innerHTML = button.innerHTML.replace(/<i[^>]*><\/i>/, '<i class="fas fa-spinner"></i>');
+            } else {
+                button.disabled = false;
+                button.classList.remove('loading');
+                // Restore original icon based on button type
+                if (button.id === 'loginBtn') {
+                    button.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login to Your Account';
+                } else if (button.id === 'signupBtn') {
+                    button.innerHTML = '<i class="fas fa-user-plus"></i> Create New Account';
+                } else if (button.id === 'resetPasswordBtn') {
+                    button.innerHTML = '<i class="fas fa-paper-plane"></i> Send Reset Link';
+                }
+            }
+        }
+    }
+
     async login() {
         try {
             const email = document.getElementById('loginEmail')?.value.trim();
             const password = document.getElementById('loginPassword')?.value.trim();
+            const loginBtn = document.getElementById('loginBtn');
             
             if (!email || !password) {
                 Utils.showToast('Please enter email and password');
@@ -201,14 +311,21 @@ class AuthManager {
                 return;
             }
 
+            this.setButtonLoading(loginBtn, true);
             Utils.showToast('Signing in...');
 
             await auth.signInWithEmailAndPassword(email, password);
+            
+            // Save remember me preference
+            this.saveRememberedCredentials(email);
+            
             Utils.showToast('Login successful!');
             
         } catch (error) {
             console.error('Login error:', error);
             this.handleAuthError(error, 'login');
+        } finally {
+            this.setButtonLoading(document.getElementById('loginBtn'), false);
         }
     }
 
@@ -217,6 +334,7 @@ class AuthManager {
             const name = document.getElementById('signupName')?.value.trim();
             const email = document.getElementById('signupEmail')?.value.trim();
             const password = document.getElementById('signupPassword')?.value.trim();
+            const signupBtn = document.getElementById('signupBtn');
             
             if (!name || !email || !password) {
                 Utils.showToast('Please fill all fields');
@@ -233,6 +351,7 @@ class AuthManager {
                 return;
             }
 
+            this.setButtonLoading(signupBtn, true);
             Utils.showToast('Creating account...');
 
             const userCredential = await auth.createUserWithEmailAndPassword(email, password);
@@ -255,6 +374,8 @@ class AuthManager {
         } catch (error) {
             console.error('Signup error:', error);
             this.handleAuthError(error, 'signup');
+        } finally {
+            this.setButtonLoading(document.getElementById('signupBtn'), false);
         }
     }
 
@@ -266,6 +387,9 @@ class AuthManager {
             }
 
             const provider = new firebase.auth.GoogleAuthProvider();
+            const googleBtn = context === 'login' ? document.getElementById('googleLoginBtn') : document.getElementById('googleSignupBtn');
+            
+            this.setButtonLoading(googleBtn, true);
             Utils.showToast('Signing in with Google...');
 
             const result = await auth.signInWithPopup(provider);
@@ -294,12 +418,16 @@ class AuthManager {
         } catch (error) {
             console.error('Google sign-in error:', error);
             this.handleAuthError(error, 'google');
+        } finally {
+            const googleBtn = context === 'login' ? document.getElementById('googleLoginBtn') : document.getElementById('googleSignupBtn');
+            this.setButtonLoading(googleBtn, false);
         }
     }
 
     async resetPassword() {
         try {
             const email = document.getElementById('resetEmail')?.value.trim();
+            const resetBtn = document.getElementById('resetPasswordBtn');
             
             if (!email) {
                 Utils.showToast('Please enter your email address');
@@ -311,6 +439,7 @@ class AuthManager {
                 return;
             }
 
+            this.setButtonLoading(resetBtn, true);
             Utils.showToast('Sending reset email...');
 
             await auth.sendPasswordResetEmail(email);
@@ -320,6 +449,8 @@ class AuthManager {
         } catch (error) {
             console.error('Password reset error:', error);
             this.handleAuthError(error, 'reset');
+        } finally {
+            this.setButtonLoading(document.getElementById('resetPasswordBtn'), false);
         }
     }
 
