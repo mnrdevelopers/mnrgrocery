@@ -83,29 +83,29 @@
         </header>
 
         <div class="container">
-            <!-- List Tab -->
-            <div id="listTab" class="tab-content active">
-                <div class="shopping-stats">
-                    <h3>📊 Shopping Progress</h3>
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-number" id="pending-count">0</div>
-                            <div class="stat-label">To Buy</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-number" id="completed-count">0</div>
-                            <div class="stat-label">Purchased</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-number" id="claimed-count">0</div>
-                            <div class="stat-label">Claimed</div>
-                        </div>
-                    </div>
-                </div>
+           <!-- List Tab -->
+<div id="listTab" class="tab-content active">
+    <div class="shopping-stats">
+        <h3>📊 Shopping Progress</h3>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number" id="pending-count">0</div>
+                <div class="stat-label">To Buy</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="completed-count">0</div>
+                <div class="stat-label">Purchased</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="claimed-count">0</div>
+                <div class="stat-label">Claimed</div>
+            </div>
+        </div>
+    </div>
 
-                <div class="card">
-                    <div class="add-item-form">
-                        <div class="input-group">
+    <div class="card">
+        <div class="add-item-form">
+             <div class="input-group">
                             <input type="text" id="itemInput" placeholder="What do you need? (e.g., Milk, Apples, Bread)" autocomplete="off">
                             
                             <div class="form-grid">
@@ -155,19 +155,19 @@
                         </div>
                         <button id="addItemBtn" class="primary">
                             <span>➕</span> Add to List
-                        </button>
-                    </div>
-                </div>
+                        </button>>
+        </div>
+    </div>
 
-                <div class="search-bar">
-                    <span class="search-icon">🔍</span>
-                    <input type="text" id="searchInput" placeholder="Search items...">
-                    <button class="clear-search" id="clearSearch">Clear</button>
-                </div>
+    <div class="search-bar">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="Search items...">
+        <button class="clear-search" id="clearSearch">Clear</button>
+    </div>
 
-                <div class="categories-scroll">
-                    <div class="categories">
-                        <button class="category-btn active" data-category="all">📦 All Items</button>
+    <div class="categories-scroll">
+        <div class="categories">
+            <button class="category-btn active" data-category="all">📦 All Items</button>
                         <button class="category-btn" data-category="fruits">🍎 Fruits & Veg</button>
                         <button class="category-btn" data-category="dairy">🥛 Dairy</button>
                         <button class="category-btn" data-category="meat">🍗 Meat & Fish</button>
@@ -175,204 +175,186 @@
                         <button class="category-btn" data-category="urgent">🚨 Urgent</button>
                         <button class="category-btn" data-category="claimed">🛒 Claimed</button>
                         <button class="category-btn" data-category="recurring">🔁 Recurring</button>
-                    </div>
-                </div>
-
-                <div class="grocery-list">
-                    <div class="list-section">
-                        <h2 class="section-title">
-                            🛒 To Buy 
-                            <span id="pending-badge">(0)</span>
-                            <button class="section-action" id="addPriceBtn" style="display: none;">Add Prices</button>
-                        </h2>
-                        <div id="pending-items"></div>
-                    </div>
-
-                    <div class="list-section completed-section">
-    <h2 class="section-title">
-        ✅ Purchased Items 
-        <span id="completed-badge">(0)</span>
-        <button class="section-action" id="toggleCompleted">Show</button>
-    </h2>
-    
-    <!-- Table format for purchased items -->
-    <div id="completed-items" class="purchased-items-table" style="display: none;">
-        <div class="table-header">
-            <div class="table-cell">Item Name</div>
-            <div class="table-cell">Quantity</div>
-            <div class="table-cell">Price</div>
-            <div class="table-cell">Store</div>
-            <div class="table-cell">Date</div>
-            <div class="table-cell">Added By</div>
         </div>
-        <div class="table-body" id="completed-items-body">
-            <!-- Purchased items will be inserted here -->
+    </div>
+
+    <div class="grocery-list">
+        <div class="list-section">
+            <h2 class="section-title">
+                🛒 To Buy 
+                <span id="pending-badge">(0)</span>
+                <button class="section-action" id="addPriceBtn" style="display: none;">Add Prices</button>
+            </h2>
+            <div id="pending-items"></div>
         </div>
+
+        <div class="list-section completed-section">
+            <h2 class="section-title">
+                ✅ Purchased Items 
+                <span id="completed-badge">(0)</span>
+                <button class="section-action" id="toggleCompleted">Show</button>
+            </h2>
+            
+            <div id="completed-items" class="purchased-items-table" style="display: none;">
+                <!-- Your purchased items table -->
+            </div>
+        </div>
+    </div>
+</div> <!-- Close listTab here -->
+
+<!-- Purchases Tab -->
+<div id="purchasesTab" class="tab-content">
+    <div class="card">
+        <h2 class="section-title">💰 Add Purchase Prices</h2>
+        <p class="purchase-help">Add prices for items you've purchased. This helps track your spending.</p>
         
-        <!-- Empty state -->
-        <div class="empty-state" id="completed-empty" style="display: none;">
-            <div class="empty-state-icon">🛒</div>
-            <p>No purchased items yet</p>
-            <p class="text-secondary">Items you mark as purchased will appear here</p>
+        <div class="purchase-form">
+            <div class="form-group">
+                <label>Select Item to Add Price</label>
+                <select id="purchaseItemSelect" class="purchase-select">
+                    <option value="">-- Select purchased item --</option>
+                </select>
+            </div>
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Price (₹)</label>
+                    <input type="number" id="purchasePrice" placeholder="0.00" min="0" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label>Store Name</label>
+                    <input type="text" id="purchaseStore" placeholder="e.g., Supermarket, Local store">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Purchase Date</label>
+                <input type="date" id="purchaseDate">
+            </div>
+            
+            <button id="savePriceBtn" class="primary full-width">
+                💾 Save Purchase Info
+            </button>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>📈 Monthly Purchase Summary</h3>
+        <div class="summary-stats">
+            <div class="summary-item">
+                <span class="summary-label">Items Purchased</span>
+                <span class="summary-value" id="monthly-purchases">0</span>
+            </div>
+            <div class="summary-item">
+                <span class="summary-label">Total Spent</span>
+                <span class="summary-value" id="monthly-total">₹0</span>
+            </div>
+            <div class="summary-item">
+                <span class="summary-label">Average per Item</span>
+                <span class="summary-value" id="monthly-average">₹0</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>🛍️ Recent Purchases</h3>
+        <div id="recent-purchases-list" class="purchases-list">
+            <!-- Recent purchases will be listed here -->
         </div>
     </div>
 </div>
-</div>
 
-            <!-- Purchases Tab -->
-            <div id="purchasesTab" class="tab-content">
-                <div class="card">
-                    <h2 class="section-title">💰 Add Purchase Prices</h2>
-                    <p class="purchase-help">Add prices for items you've purchased. This helps track your spending.</p>
-                    
-                    <div class="purchase-form">
-                        <div class="form-group">
-                            <label>Select Item to Add Price</label>
-                            <select id="purchaseItemSelect" class="purchase-select">
-                                <option value="">-- Select purchased item --</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label>Price (₹)</label>
-                                <input type="number" id="purchasePrice" placeholder="0.00" min="0" step="0.01">
-                            </div>
-                            <div class="form-group">
-                                <label>Store Name</label>
-                                <input type="text" id="purchaseStore" placeholder="e.g., Supermarket, Local store">
-                            </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Purchase Date</label>
-                            <input type="date" id="purchaseDate">
-                        </div>
-                        
-                        <button id="savePriceBtn" class="primary full-width">
-                            💾 Save Purchase Info
-                        </button>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <h3>📈 Monthly Purchase Summary</h3>
-                    <div class="summary-stats">
-                        <div class="summary-item">
-                            <span class="summary-label">Items Purchased</span>
-                            <span class="summary-value" id="monthly-purchases">0</span>
-                        </div>
-                        <div class="summary-item">
-                            <span class="summary-label">Total Spent</span>
-                            <span class="summary-value" id="monthly-total">₹0</span>
-                        </div>
-                        <div class="summary-item">
-                            <span class="summary-label">Average per Item</span>
-                            <span class="summary-value" id="monthly-average">₹0</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <h3>🛍️ Recent Purchases</h3>
-                    <div id="recent-purchases-list" class="purchases-list">
-                        <!-- Recent purchases will be listed here -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- Family Tab -->
-            <div id="familyTab" class="tab-content">
-                <div class="card">
-                    <h2 class="section-title">👨‍👩‍👧‍👦 Family Members</h2>
-                    <div id="familyMembersList">
-                        <!-- Family members list will be inserted here -->
-                    </div>
-                </div>
-                
-                <div class="card">
-                    <div class="family-info-settings">
-                        <h3>🔑 Family Code</h3>
-                        <p>Share this code with family members to let them join your group</p>
-                        <div class="family-code-display">
-                            <div class="family-code" id="familyCodeDisplay">Loading...</div>
-                            <button class="copy-btn outline" id="copyFamilyCode">Copy</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <h3>🏆 Family Shopping Stats</h3>
-                    <div class="family-stats">
-                        <div class="family-stat">
-                            <span class="stat-label">Most Active Shopper</span>
-                            <span class="stat-value" id="topShopper">-</span>
-                        </div>
-                        <div class="family-stat">
-                            <span class="stat-label">Total Items This Month</span>
-                            <span class="stat-value" id="familyTotalItems">0</span>
-                        </div>
-                        <div class="family-stat">
-                            <span class="stat-label">Items Purchased</span>
-                            <span class="stat-value" id="familyPurchasedItems">0</span>
-                        </div>
-                        <div class="family-stat">
-                            <span class="stat-label">Urgent Items</span>
-                            <span class="stat-value" id="familyUrgentItems">0</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Settings Tab -->
-            <div id="settingsTab" class="tab-content">
-                <div class="card">
-                    <div class="settings-content">
-                        <div class="user-info">
-                            <div class="user-avatar-large" id="userAvatarLarge">👤</div>
-                            <div class="user-details">
-                                <h3 id="userNameDisplay">User Name</h3>
-                                <p id="userEmailDisplay">user@example.com</p>
-                                <span class="user-role">Family Member</span>
-                            </div>
-                        </div>
-                        
-                        <div class="settings-section">
-                            <h3 class="settings-title">⚙️ Account Settings</h3>
-                            <button class="settings-btn" id="changeNameBtn">
-                                <span>👤</span> Change Display Name
-                            </button>
-                            <button class="settings-btn" id="setBudgetBtn">
-                                <span>💰</span> Set Monthly Budget
-                            </button>
-                            <button class="settings-btn" id="notificationSettings">
-                                <span>🔔</span> Notification Settings
-                            </button>
-                        </div>
-                        
-                        <div class="settings-section">
-                            <h3 class="settings-title">👨‍👩‍👧‍👦 Family Settings</h3>
-                            <button class="settings-btn" id="inviteMemberBtn">
-                                <span>📧</span> Invite Family Member
-                            </button>
-                            <button class="settings-btn outline" id="leaveFamilyBtn">
-                                <span>🚪</span> Leave Family Group
-                            </button>
-                        </div>
-                        
-                        <div class="danger-zone">
-                            <h3>⚠️ Danger Zone</h3>
-                            <button class="settings-btn danger" id="exportDataBtn">
-                                <span>📤</span> Export Shopping Data
-                            </button>
-                            <button class="settings-btn danger" id="logoutBtn">
-                                <span>🔒</span> Logout
-                            </button>
-                        </div>
-                    </div>
-                </div>
+<!-- Family Tab -->
+<div id="familyTab" class="tab-content">
+    <div class="card">
+        <h2 class="section-title">👨‍👩‍👧‍👦 Family Members</h2>
+        <div id="familyMembersList">
+            <!-- Family members list will be inserted here -->
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="family-info-settings">
+            <h3>🔑 Family Code</h3>
+            <p>Share this code with family members to let them join your group</p>
+            <div class="family-code-display">
+                <div class="family-code" id="familyCodeDisplay">Loading...</div>
+                <button class="copy-btn outline" id="copyFamilyCode">Copy</button>
             </div>
         </div>
+    </div>
+
+    <div class="card">
+        <h3>🏆 Family Shopping Stats</h3>
+        <div class="family-stats">
+            <div class="family-stat">
+                <span class="stat-label">Most Active Shopper</span>
+                <span class="stat-value" id="topShopper">-</span>
+            </div>
+            <div class="family-stat">
+                <span class="stat-label">Total Items This Month</span>
+                <span class="stat-value" id="familyTotalItems">0</span>
+            </div>
+            <div class="family-stat">
+                <span class="stat-label">Items Purchased</span>
+                <span class="stat-value" id="familyPurchasedItems">0</span>
+            </div>
+            <div class="family-stat">
+                <span class="stat-label">Urgent Items</span>
+                <span class="stat-value" id="familyUrgentItems">0</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Settings Tab -->
+<div id="settingsTab" class="tab-content">
+    <div class="card">
+        <div class="settings-content">
+            <div class="user-info">
+                <div class="user-avatar-large" id="userAvatarLarge">👤</div>
+                <div class="user-details">
+                    <h3 id="userNameDisplay">User Name</h3>
+                    <p id="userEmailDisplay">user@example.com</p>
+                    <span class="user-role">Family Member</span>
+                </div>
+            </div>
+            
+            <div class="settings-section">
+                <h3 class="settings-title">⚙️ Account Settings</h3>
+                <button class="settings-btn" id="changeNameBtn">
+                    <span>👤</span> Change Display Name
+                </button>
+                <button class="settings-btn" id="setBudgetBtn">
+                    <span>💰</span> Set Monthly Budget
+                </button>
+                <button class="settings-btn" id="notificationSettings">
+                    <span>🔔</span> Notification Settings
+                </button>
+            </div>
+            
+            <div class="settings-section">
+                <h3 class="settings-title">👨‍👩‍👧‍👦 Family Settings</h3>
+                <button class="settings-btn" id="inviteMemberBtn">
+                    <span>📧</span> Invite Family Member
+                </button>
+                <button class="settings-btn outline" id="leaveFamilyBtn">
+                    <span>🚪</span> Leave Family Group
+                </button>
+            </div>
+            
+            <div class="danger-zone">
+                <h3>⚠️ Danger Zone</h3>
+                <button class="settings-btn danger" id="exportDataBtn">
+                    <span>📤</span> Export Shopping Data
+                </button>
+                <button class="settings-btn danger" id="logoutBtn">
+                    <span>🔒</span> Logout
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
         <div class="bottom-nav">
             <button class="nav-btn active" data-tab="list">
