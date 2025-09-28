@@ -1,4 +1,5 @@
 // Main application functionality
+class GroceryApp {
 constructor() {
     this.currentUser = null;
     this.currentFamily = null;
