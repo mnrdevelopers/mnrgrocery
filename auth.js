@@ -463,44 +463,141 @@ class AuthManager {
         }
     }
 
-    handleAuthError(error, context) {
-    let message = 'Authentication failed';
-
+  handleAuthError(error, context) {
+    let message = 'Something went wrong. Please try again.';
+    let toastType = 'error';
+    
     switch (error.code) {
-        case 'auth/invalid-login-credentials':   // ✅ New unified error for v9+
-            message = 'Invalid email or password';
+        // Email/Password Login Errors
+        case 'auth/invalid-login-credentials':
+        case 'auth/invalid-credential': // Some versions use this
+            if (context === 'login') {
+                message = 'Invalid email or password. Please check your credentials.';
+                // Don't specify whether it's email or password for security
+            } else {
+                message = 'Authentication failed. Please try again.';
+            }
             break;
-
-        // Legacy Firebase codes (still catch them in case they appear)
         case 'auth/user-not-found':
-            message = 'No account found with this email';
+            message = 'No account found with this email address. Please sign up first.';
             break;
         case 'auth/wrong-password':
-            message = 'Incorrect password';
+            message = 'Incorrect password. Please try again.';
             break;
-
         case 'auth/invalid-email':
-            message = 'Invalid email address';
+            message = 'Please enter a valid email address.';
             break;
+            
+        // Signup Errors
         case 'auth/email-already-in-use':
-            message = 'Email already in use';
+            message = 'This email is already registered. Please try logging in instead.';
+            toastType = 'info';
             break;
         case 'auth/weak-password':
-            message = 'Password is too weak';
+            message = 'Password is too weak. Please use at least 6 characters.';
             break;
+            
+        // Google Auth Errors
         case 'auth/popup-closed-by-user':
-            message = 'Sign-in cancelled';
+            message = 'Sign-in was cancelled. Please try again.';
+            toastType = 'info';
             break;
         case 'auth/popup-blocked':
-            message = 'Popup blocked by browser. Please allow popups for this site.';
+            message = 'Popup was blocked by your browser. Please allow popups for this site.';
             break;
-
+        case 'auth/cancelled-popup-request':
+            message = 'Sign-in process was cancelled.';
+            toastType = 'info';
+            break;
+            
+        // Network Errors
+        case 'auth/network-request-failed':
+            message = 'Network error. Please check your internet connection.';
+            break;
+        case 'auth/too-many-requests':
+            message = 'Too many failed attempts. Please try again later.';
+            break;
+            
+        // Account Related
+        case 'auth/user-disabled':
+            message = 'This account has been disabled. Please contact support.';
+            break;
+        case 'auth/requires-recent-login':
+            message = 'Please log out and log back in to continue.';
+            break;
+            
+        // Password Reset
+        case 'auth/missing-email':
+            message = 'Please enter your email address.';
+            break;
+            
         default:
-            console.error('Unhandled Firebase Auth error:', error);
-            message = error.message || 'Authentication error';
+            // For unknown errors, show a generic message
+            console.error('Auth error:', error.code, error.message);
+            message = 'Authentication failed. Please try again.';
     }
+    
+    // Show user-friendly toast message
+    Utils.showToast(message, toastType);
+    
+    // Auto-switch tabs for better UX (only for specific cases)
+    this.autoSwitchTabOnError(error.code, context);
+}
 
-    Utils.showToast(message, 'error');
+// Improved auto-switch method
+autoSwitchTabOnError(errorCode, context) {
+    setTimeout(() => {
+        const signupEmail = document.getElementById('signupEmail')?.value;
+        const loginEmail = document.getElementById('loginEmail')?.value;
+        
+        switch (errorCode) {
+            case 'auth/email-already-in-use':
+                // If user tries to sign up with existing email, switch to login
+                if (context === 'signup') {
+                    this.switchTab('login');
+                    // Pre-fill the email in login form
+                    if (signupEmail && document.getElementById('loginEmail')) {
+                        document.getElementById('loginEmail').value = signupEmail;
+                        // Focus on password field for better UX
+                        setTimeout(() => {
+                            const loginPassword = document.getElementById('loginPassword');
+                            if (loginPassword) loginPassword.focus();
+                        }, 300);
+                    }
+                }
+                break;
+                
+            case 'auth/user-not-found':
+                // If user tries to login with non-existent email, switch to signup
+                if (context === 'login') {
+                    this.switchTab('signup');
+                    // Pre-fill the email in signup form
+                    if (loginEmail && document.getElementById('signupEmail')) {
+                        document.getElementById('signupEmail').value = loginEmail;
+                        // Focus on name field for better UX
+                        setTimeout(() => {
+                            const signupName = document.getElementById('signupName');
+                            if (signupName) signupName.focus();
+                        }, 300);
+                    }
+                }
+                break;
+                
+            case 'auth/invalid-login-credentials':
+            case 'auth/invalid-credential':
+                // For invalid credentials, clear password field and focus on it
+                if (context === 'login') {
+                    const loginPassword = document.getElementById('loginPassword');
+                    if (loginPassword) {
+                        loginPassword.value = '';
+                        setTimeout(() => {
+                            loginPassword.focus();
+                        }, 300);
+                    }
+                }
+                break;
+        }
+    }, 1500);
 }
 
 // Initialize auth manager when DOM is loaded
