@@ -896,27 +896,43 @@ async createFamily() {
         }
     }
 
-    switchTab(tabName) {
+   switchTab(tabName) {
+    console.log('Switching to tab:', tabName); // Debug log
+    
     // Update nav buttons
     const navButtons = document.querySelectorAll('.nav-btn');
     navButtons.forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.tab === tabName);
+        const isActive = btn.dataset.tab === tabName;
+        btn.classList.toggle('active', isActive);
+        console.log('Button:', btn.dataset.tab, 'Active:', isActive); // Debug
     });
 
-    // Update tab contents
+    // Update tab contents - FIXED: Correct ID matching
     const tabContents = document.querySelectorAll('.tab-content');
     tabContents.forEach(tab => {
-        tab.classList.toggle('active', tab.id === `${tabName}Tab`);
+        const shouldShow = tab.id === `${tabName}Tab`;
+        tab.classList.toggle('active', shouldShow);
+        console.log('Tab:', tab.id, 'Show:', shouldShow); // Debug
     });
 
     // Load tab-specific data
-    if (tabName === 'purchases') {
-        this.updatePurchaseItemsList();
-        this.updateRecentPurchases();
-    } else if (tabName === 'family') {
-        this.loadFamilyTab();
-    } else if (tabName === 'settings') {
-        this.loadSettingsTab();
+    switch(tabName) {
+        case 'list':
+            this.renderItems();
+            this.updateStats();
+            break;
+        case 'purchases':
+            this.updatePurchaseItemsList();
+            this.updateRecentPurchases();
+            this.updateStats();
+            break;
+        case 'family':
+            this.loadFamilyTab();
+            this.updateFamilyStats();
+            break;
+        case 'settings':
+            this.loadSettingsTab();
+            break;
     }
 }
 
