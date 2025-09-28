@@ -178,6 +178,22 @@ class GroceryApp {
         if (monthFilter) monthFilter.addEventListener('change', () => this.renderPurchaseTable());
         if (clearFilters) clearFilters.addEventListener('click', () => this.clearPurchaseFilters());
 
+          // NEW: Purchase table action listeners
+    document.addEventListener('click', (e) => {
+        if (e.target.closest('.edit-btn')) {
+            const button = e.target.closest('.edit-btn');
+            const itemId = button.dataset.id;
+            this.editPurchaseItem(itemId);
+        }
+        
+        if (e.target.closest('.delete-btn-purchase')) {
+            const button = e.target.closest('.delete-btn-purchase');
+            const itemId = button.dataset.id;
+            this.deletePurchaseItem(itemId);
+        }
+    });
+}
+
         // Actions
         const copyFamilyCodeBtn = document.getElementById('copyFamilyCode');
         const changeNameBtn = document.getElementById('changeNameBtn');
@@ -247,6 +263,72 @@ class GroceryApp {
             loadingScreen.style.display = 'none';
         }
     }
+
+async editPurchaseItem(itemId) {
+    const item = this.groceryItems.find(item => item.id === itemId);
+    if (!item) {
+        Utils.showToast('Item not found');
+        return;
+    }
+
+    // Create edit form
+    const newPrice = prompt('Enter new price (₹):', item.price || '');
+    if (newPrice === null) return; // User cancelled
+    
+    const price = parseFloat(newPrice);
+    if (isNaN(price) || price <= 0) {
+        Utils.showToast('Please enter a valid price');
+        return;
+    }
+
+    const newStore = prompt('Enter store name:', item.store || '');
+    if (newStore === null) return; // User cancelled
+    
+    if (!newStore.trim()) {
+        Utils.showToast('Please enter a store name');
+        return;
+    }
+
+    const newDate = prompt('Enter purchase date (YYYY-MM-DD):', item.purchaseDate || '');
+    if (newDate === null) return; // User cancelled
+
+    try {
+        await db.collection('items').doc(itemId).update({
+            price: price,
+            store: newStore.trim(),
+            purchaseDate: newDate || item.purchaseDate
+        });
+        
+        Utils.showToast('Purchase updated successfully');
+    } catch (error) {
+        console.error('Error updating purchase:', error);
+        Utils.showToast('Error updating purchase: ' + error.message);
+    }
+}
+
+// NEW: Delete purchase item (remove price but keep item)
+async deletePurchaseItem(itemId) {
+    if (!confirm('Are you sure you want to remove the purchase information for this item? The item will remain in your list but the price will be removed.')) {
+        return;
+    }
+
+    try {
+        await db.collection('items').doc(itemId).update({
+            price: null,
+            store: null,
+            purchaseDate: null,
+            completed: false,
+            completedBy: null,
+            completedAt: null,
+            completedByName: null
+        });
+        
+        Utils.showToast('Purchase information removed');
+    } catch (error) {
+        console.error('Error removing purchase info:', error);
+        Utils.showToast('Error removing purchase info: ' + error.message);
+    }
+}
 
     async createFamily() {
         const familyCode = Utils.generateFamilyCode();
@@ -688,6 +770,12 @@ class GroceryApp {
         
         if (!tableBody || !emptyState) return;
 
+         // Update grid templates for header and rows
+    const tableHeader = tableBody.previousElementSibling;
+    if (tableHeader && tableHeader.classList.contains('table-header')) {
+        tableHeader.style.gridTemplateColumns = '2fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr';
+    }
+
         const purchasedItems = this.groceryItems.filter(item => item.price && item.price > 0);
         
         const categoryFilter = document.getElementById('purchaseCategoryFilter')?.value || 'all';
@@ -717,6 +805,8 @@ class GroceryApp {
             filteredPurchases.forEach(item => {
                 const row = document.createElement('div');
                 row.className = 'purchase-table-row';
+                row.style.gridTemplateColumns = '2fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr'; // NEW: 8 columns
+                
                 row.innerHTML = this.createPurchaseTableRowHTML(item);
                 tableBody.appendChild(row);
             });
@@ -750,6 +840,7 @@ class GroceryApp {
 
         const formattedDate = Utils.formatDate(item.purchaseDate);
         const addedByName = item.addedByName || 'User';
+        const isAddedByCurrentUser = item.addedBy === this.currentUser.uid;
 
         return `
             <div class="purchase-table-cell item-name-cell" data-label="Item">
@@ -774,8 +865,20 @@ class GroceryApp {
                 <div class="added-by-avatar">${addedByName.charAt(0).toUpperCase()}</div>
                 <span>${addedByName}</span>
             </div>
-        `;
-    }
+            <div class="purchase-table-cell actions-cell" data-label="Actions">
+            ${isAddedByCurrentUser ? `
+                <button class="table-action-btn edit-btn" data-id="${item.id}">
+                    <span>✏️</span> Edit
+                </button>
+                <button class="table-action-btn delete-btn-purchase" data-id="${item.id}">
+                    <span>🗑️</span> Delete
+                </button>
+        ` : `
+                <span class="text-secondary">-</span>
+            `}
+        </div>
+    `;
+}
 
     // NEW: Clear purchase filters
     clearPurchaseFilters() {
