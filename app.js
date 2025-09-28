@@ -671,24 +671,30 @@ async createFamily() {
         }
     }
 
-   renderItems() {
+ renderItems() {
     const pendingItemsContainer = document.getElementById('pending-items');
     const completedItemsBody = document.getElementById('completed-items-body');
     const completedEmpty = document.getElementById('completed-empty');
     
-    if (!pendingItemsContainer || !completedItemsBody || !completedEmpty) return;
+    if (!pendingItemsContainer || !completedItemsBody || !completedEmpty) {
+        console.error('Required DOM elements not found');
+        return;
+    }
 
+    // Filter items based on current filter and search
     let filteredItems = this.groceryItems.filter(item => {
         const matchesCategory = this.currentFilter === 'all' || 
                               (this.currentFilter === 'urgent' ? item.isUrgent : 
                               (this.currentFilter === 'claimed' ? item.claimedBy : 
                               (this.currentFilter === 'recurring' ? item.isRecurring : item.category === this.currentFilter)));
-        const matchesSearch = item.name.toLowerCase().includes(this.currentSearch);
+        const matchesSearch = item.name.toLowerCase().includes(this.currentSearch.toLowerCase());
         return matchesCategory && matchesSearch;
     });
 
     const pendingItems = filteredItems.filter(item => !item.completed);
     const completedItems = filteredItems.filter(item => item.completed);
+
+    console.log('Rendering items:', { total: this.groceryItems.length, pending: pendingItems.length, completed: completedItems.length });
 
     // Render pending items
     if (pendingItems.length > 0) {
@@ -720,6 +726,12 @@ async createFamily() {
         completedEmpty.style.display = 'block';
         completedItemsBody.style.display = 'none';
     }
+
+    // Update badges
+    const pendingBadge = document.getElementById('pending-badge');
+    const completedBadge = document.getElementById('completed-badge');
+    if (pendingBadge) pendingBadge.textContent = `(${pendingItems.length})`;
+    if (completedBadge) completedBadge.textContent = `(${completedItems.length})`;
 
     this.addItemEventListeners();
 }
