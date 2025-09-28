@@ -1132,6 +1132,219 @@ button:disabled:hover {
     border: 1px solid var(--divider);
 }
 
+/* Add to app.css */
+
+/* Purchase Filters */
+.purchases-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.purchase-filters {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.filter-select {
+    padding: 8px 12px;
+    border: 2px solid var(--divider);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--text-primary);
+    font-size: 0.9rem;
+}
+
+/* Purchases Table */
+.purchases-table-container {
+    margin-top: 20px;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    background: var(--surface);
+    border: 1px solid var(--divider);
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.purchases-table-container .table-header {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr 1fr;
+    gap: 1px;
+    background: var(--primary-light);
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+.purchases-table-container .table-cell {
+    padding: 15px 12px;
+    color: var(--text-primary);
+    text-align: left;
+}
+
+.purchases-table-container .table-body {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.purchase-table-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr 1fr;
+    gap: 1px;
+    border-bottom: 1px solid var(--divider);
+    transition: all 0.3s ease;
+    background: var(--surface);
+}
+
+.purchase-table-row:last-child {
+    border-bottom: none;
+}
+
+.purchase-table-row:hover {
+    background: var(--primary-light);
+    transform: translateX(2px);
+}
+
+.purchase-table-cell {
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+}
+
+/* Category badges in table */
+.category-badge {
+    background: var(--primary-light);
+    color: var(--primary-dark);
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+/* Price styling */
+.price-cell {
+    font-weight: 700;
+    color: var(--success);
+}
+
+/* Store styling */
+.store-cell {
+    color: var(--text-secondary);
+}
+
+/* Date styling */
+.date-cell {
+    font-size: 0.8rem;
+    color: var(--text-light);
+}
+
+/* Added by styling */
+.added-by-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.added-by-avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: bold;
+}
+
+/* Purchases Summary */
+.purchases-summary {
+    margin-top: 20px;
+    padding: 15px;
+    background: var(--primary-light);
+    border-radius: var(--radius);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.summary-row span:last-child {
+    color: var(--primary);
+    margin-left: 10px;
+}
+
+/* Responsive table */
+@media (max-width: 768px) {
+    .purchases-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .purchase-filters {
+        justify-content: center;
+    }
+    
+    .purchases-table-container .table-header {
+        grid-template-columns: 1fr;
+        display: none;
+    }
+    
+    .purchase-table-row {
+        grid-template-columns: 1fr;
+        gap: 0;
+        padding: 15px;
+        border: 1px solid var(--divider);
+        border-radius: var(--radius);
+        margin-bottom: 10px;
+    }
+    
+    .purchase-table-cell {
+        padding: 8px 0;
+        justify-content: space-between;
+        border-bottom: 1px solid var(--divider);
+    }
+    
+    .purchase-table-cell:last-child {
+        border-bottom: none;
+    }
+    
+    .purchase-table-cell::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        font-size: 0.75rem;
+    }
+    
+    .purchases-summary {
+        flex-direction: column;
+        gap: 8px;
+    }
+}
+
 .table-header {
     display: grid;
     grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr;
