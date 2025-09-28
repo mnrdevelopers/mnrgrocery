@@ -464,37 +464,40 @@ class AuthManager {
     }
 
     handleAuthError(error, context) {
-        let message = 'Authentication failed';
-        
-        switch (error.code) {
-            case 'auth/user-not-found':
-                message = 'No account found with this email';
-                break;
-            case 'auth/wrong-password':
-                message = 'Incorrect password';
-                break;
-            case 'auth/invalid-email':
-                message = 'Invalid email address';
-                break;
-            case 'auth/email-already-in-use':
-                message = 'Email already in use';
-                break;
-            case 'auth/weak-password':
-                message = 'Password is too weak';
-                break;
-            case 'auth/popup-closed-by-user':
-                message = 'Sign-in cancelled';
-                break;
-            case 'auth/popup-blocked':
-                message = 'Popup blocked by browser. Please allow popups for this site.';
-                break;
-            default:
-                message = error.message || 'Authentication error';
-        }
-        
-        Utils.showToast(message, 'error');
+    let message = 'Authentication failed';
+    
+    switch (error.code) {
+        case 'auth/invalid-login-credentials':
+            message = 'Invalid email or password';
+            break;
+        case 'auth/user-not-found':
+            message = 'No account found with this email';
+            break;
+        case 'auth/wrong-password':
+            message = 'Incorrect password';
+            break;
+        case 'auth/invalid-email':
+            message = 'Invalid email address';
+            break;
+        case 'auth/email-already-in-use':
+            message = 'Email already in use';
+            break;
+        case 'auth/weak-password':
+            message = 'Password is too weak';
+            break;
+        case 'auth/popup-closed-by-user':
+            message = 'Sign-in cancelled';
+            break;
+        case 'auth/popup-blocked':
+            message = 'Popup blocked by browser. Please allow popups for this site.';
+            break;
+        default:
+            message = error.message || 'Authentication error';
     }
+    
+    Utils.showToast(message, 'error');
 }
+
 
 // Initialize auth manager when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
