@@ -1025,6 +1025,165 @@ button:disabled:hover {
     color: var(--primary);
 }
 
+/* Purchased Items Table Styles */
+.purchased-items-table {
+    margin-top: 20px;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    background: var(--surface);
+    border: 1px solid var(--divider);
+}
+
+.table-header {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr;
+    gap: 1px;
+    background: var(--primary-light);
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.table-cell {
+    padding: 15px 12px;
+    color: var(--text-primary);
+    text-align: left;
+}
+
+.table-body {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.purchased-item-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr;
+    gap: 1px;
+    border-bottom: 1px solid var(--divider);
+    transition: all 0.3s ease;
+    background: var(--surface);
+}
+
+.purchased-item-row:last-child {
+    border-bottom: none;
+}
+
+.purchased-item-row:hover {
+    background: var(--primary-light);
+    transform: translateX(5px);
+}
+
+.purchased-item-cell {
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+}
+
+/* Item name with icon */
+.item-name-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+}
+
+.item-icon {
+    font-size: 1.2rem;
+    width: 24px;
+    text-align: center;
+}
+
+/* Price styling */
+.price-cell {
+    font-weight: 700;
+    color: var(--success);
+}
+
+/* Store styling */
+.store-cell {
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+/* Date styling */
+.date-cell {
+    font-size: 0.8rem;
+    color: var(--text-light);
+}
+
+/* Added by styling */
+.added-by-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.added-by-avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: bold;
+}
+
+/* Empty state for table */
+#completed-empty {
+    grid-column: 1 / -1;
+    padding: 40px 20px;
+    text-align: center;
+}
+
+/* Responsive table */
+@media (max-width: 768px) {
+    .table-header {
+        grid-template-columns: 2fr 1fr 1fr;
+        display: none; /* Hide header on mobile */
+    }
+    
+    .purchased-item-row {
+        grid-template-columns: 1fr;
+        gap: 0;
+        padding: 15px;
+        border: 1px solid var(--divider);
+        border-radius: var(--radius);
+        margin-bottom: 10px;
+    }
+    
+    .purchased-item-cell {
+        padding: 5px 0;
+        justify-content: space-between;
+        border-bottom: 1px solid var(--divider);
+    }
+    
+    .purchased-item-cell:last-child {
+        border-bottom: none;
+    }
+    
+    .purchased-item-cell::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        font-size: 0.75rem;
+    }
+    
+    .item-name-cell::before { content: "Item"; }
+    .quantity-cell::before { content: "Qty"; }
+    .price-cell::before { content: "Price"; }
+    .store-cell::before { content: "Store"; }
+    .date-cell::before { content: "Date"; }
+    .added-by-cell::before { content: "Added By"; }
+}
+
 /* Purchases List */
 .purchases-list {
     max-height: 400px;
