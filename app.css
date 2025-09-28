@@ -530,7 +530,7 @@ button:disabled:hover {
 }
 
 .form-options {
-    display: flex;
+    display: -webkit-box;
     flex-direction: column;
     gap: 12px;
     margin-top: 5px;
