@@ -7,10 +7,13 @@ class FamilyInviteManager {
 
     setupEventListeners() {
         // Invite family member buttons
-        const inviteMemberBtn = document.getElementById('inviteMemberBtn');
-        const whatsappInviteBtn = document.getElementById('whatsappInviteBtn');
-        const shareCodeBtn = document.getElementById('shareCodeBtn');
-        const shareLinkBtn = document.getElementById('shareLinkBtn');
+    const inviteMemberBtn = document.getElementById('inviteMemberBtn');
+    const whatsappInviteBtn = document.getElementById('whatsappInviteBtn');
+    const shareCodeBtn = document.getElementById('shareCodeBtn');
+    const shareLinkBtn = document.getElementById('shareLinkBtn');
+    const emailInviteBtn = document.getElementById('emailInviteBtn');
+    const bulkInviteBtn = document.getElementById('bulkInviteBtn');
+    const phoneInviteBtn = document.getElementById('phoneInviteBtn');
         
         // Account management buttons
         const deleteAccountBtn = document.getElementById('deleteAccountBtn');
@@ -19,6 +22,9 @@ class FamilyInviteManager {
         if (whatsappInviteBtn) whatsappInviteBtn.addEventListener('click', () => this.shareViaWhatsApp());
         if (shareCodeBtn) shareCodeBtn.addEventListener('click', () => this.copyFamilyCode());
         if (shareLinkBtn) shareLinkBtn.addEventListener('click', () => this.copyInviteLink());
+        if (emailInviteBtn) emailInviteBtn.addEventListener('click', () => this.sendEmailInvite());
+       if (bulkInviteBtn) bulkInviteBtn.addEventListener('click', () => this.bulkInviteFamilyMembers());
+       if (phoneInviteBtn) phoneInviteBtn.addEventListener('click', () => this.shareToSpecificNumber());
         if (deleteAccountBtn) deleteAccountBtn.addEventListener('click', () => this.deleteAccount());
     }
 
@@ -66,12 +72,19 @@ Choose an option (1-4):
     }
 
     // WhatsApp sharing functionality
-    async shareViaWhatsApp() {
-        if (!this.app.currentFamily) {
-            Utils.showToast('No family group found');
-            return;
-        }
+   async shareViaWhatsApp() {
+    if (!this.app.currentFamily) {
+        Utils.showToast('No family group found');
+        return;
+    }
 
+    // Add loading state
+    const whatsappBtn = document.getElementById('whatsappInviteBtn');
+    if (whatsappBtn) {
+        whatsappBtn.classList.add('btn-loading');
+    }
+
+    try {
         // Get family name for personalization
         let familyName = 'Our Family';
         let userName = 'Your Family Member';
@@ -90,7 +103,7 @@ Choose an option (1-4):
             console.log('Could not fetch family or user details');
         }
 
-       const message = `🏠 *FamilyGrocer Invitation* 🛒\n\n` +
+        const message = `🏠 *FamilyGrocer Invitation* 🛒\n\n` +
   `Hi! ${userName} has invited you to join *${familyName}* on FamilyGrocer!\n\n` +
   `*Family Code:* \`${this.app.currentFamily}\`\n\n` +
   `*How to join:*\n` +
@@ -99,6 +112,7 @@ Choose an option (1-4):
   `3. Enter this code: *${this.app.currentFamily}*\n\n` +
   `Let's make shopping easier together! 🎉\n\n` +
   `_Sent via FamilyGrocer_`;
+
 
         const encodedMessage = encodeURIComponent(message);
         const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
@@ -121,40 +135,71 @@ Choose an option (1-4):
         }
         
         Utils.showToast('Opening WhatsApp with invitation...');
+        
+    } finally {
+        // Remove loading state
+        if (whatsappBtn) {
+            whatsappBtn.classList.remove('btn-loading');
+        }
     }
+}
 
     // Copy family code to clipboard
-    async copyFamilyCode() {
-        if (!this.app.currentFamily) {
-            Utils.showToast('No family group found');
-            return;
-        }
-
-        const success = await Utils.copyToClipboard(this.app.currentFamily);
-        
-        if (success) {
-            Utils.showToast('Family code copied to clipboard!');
-        } else {
-            Utils.showToast('Failed to copy code. Please copy manually: ' + this.app.currentFamily);
-        }
+   async copyFamilyCode() {
+    if (!this.app.currentFamily) {
+        Utils.showToast('No family group found');
+        return;
     }
+
+    const success = await Utils.copyToClipboard(this.app.currentFamily);
+    
+    if (success) {
+        // Add visual feedback
+        const shareCodeBtn = document.getElementById('shareCodeBtn');
+        if (shareCodeBtn) {
+            const originalText = shareCodeBtn.innerHTML;
+            shareCodeBtn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+            shareCodeBtn.classList.add('copy-success');
+            
+            setTimeout(() => {
+                shareCodeBtn.innerHTML = originalText;
+                shareCodeBtn.classList.remove('copy-success');
+            }, 2000);
+        }
+        Utils.showToast('Family code copied to clipboard!');
+    } else {
+        Utils.showToast('Failed to copy code. Please copy manually: ' + this.app.currentFamily);
+    }
+}
 
     // Copy invite link to clipboard
-    async copyInviteLink() {
-        if (!this.app.currentFamily) {
-            Utils.showToast('No family group found');
-            return;
-        }
-
-        const inviteLink = `${window.location.origin}?family=${this.app.currentFamily}`;
-        const success = await Utils.copyToClipboard(inviteLink);
-        
-        if (success) {
-            Utils.showToast('Invite link copied to clipboard!');
-        } else {
-            Utils.showToast('Failed to copy link. Please copy manually: ' + inviteLink);
-        }
+   async copyInviteLink() {
+    if (!this.app.currentFamily) {
+        Utils.showToast('No family group found');
+        return;
     }
+
+    const inviteLink = `${window.location.origin}?family=${this.app.currentFamily}`;
+    const success = await Utils.copyToClipboard(inviteLink);
+    
+    if (success) {
+        // Add visual feedback
+        const shareLinkBtn = document.getElementById('shareLinkBtn');
+        if (shareLinkBtn) {
+            const originalText = shareLinkBtn.innerHTML;
+            shareLinkBtn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+            shareLinkBtn.classList.add('copy-success');
+            
+            setTimeout(() => {
+                shareLinkBtn.innerHTML = originalText;
+                shareLinkBtn.classList.remove('copy-success');
+            }, 2000);
+        }
+        Utils.showToast('Invite link copied to clipboard!');
+    } else {
+        Utils.showToast('Failed to copy link. Please copy manually: ' + inviteLink);
+    }
+}
 
     // Email invite functionality
     async sendEmailInvite() {
