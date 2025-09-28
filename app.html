@@ -189,15 +189,34 @@
                     </div>
 
                     <div class="list-section completed-section">
-                        <h2 class="section-title">
-                            ✅ Purchased Items 
-                            <span id="completed-badge">(0)</span>
-                            <button class="section-action" id="toggleCompleted">Show</button>
-                        </h2>
-                        <div id="completed-items" style="display: none;"></div>
-                    </div>
-                </div>
-            </div>
+    <h2 class="section-title">
+        ✅ Purchased Items 
+        <span id="completed-badge">(0)</span>
+        <button class="section-action" id="toggleCompleted">Show</button>
+    </h2>
+    
+    <!-- Table format for purchased items -->
+    <div id="completed-items" class="purchased-items-table" style="display: none;">
+        <div class="table-header">
+            <div class="table-cell">Item Name</div>
+            <div class="table-cell">Quantity</div>
+            <div class="table-cell">Price</div>
+            <div class="table-cell">Store</div>
+            <div class="table-cell">Date</div>
+            <div class="table-cell">Added By</div>
+        </div>
+        <div class="table-body" id="completed-items-body">
+            <!-- Purchased items will be inserted here -->
+        </div>
+        
+        <!-- Empty state -->
+        <div class="empty-state" id="completed-empty" style="display: none;">
+            <div class="empty-state-icon">🛒</div>
+            <p>No purchased items yet</p>
+            <p class="text-secondary">Items you mark as purchased will appear here</p>
+        </div>
+    </div>
+</div>
 
             <!-- Purchases Tab -->
             <div id="purchasesTab" class="tab-content">
