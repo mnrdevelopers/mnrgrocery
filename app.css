@@ -1443,6 +1443,25 @@ button:disabled:hover {
     }
 }
 
+/* Simple shimmer effect */
+.username.shimmer {
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
 /* Pulse animation for username */
 .username.pulse {
     animation: usernamePulse 2s ease-in-out infinite;
