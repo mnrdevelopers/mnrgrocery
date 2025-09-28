@@ -20,16 +20,24 @@ class GroceryApp {
         this.setupEventListeners();
     }
 
-    async checkAuthState() {
-        auth.onAuthStateChanged(async (user) => {
-            if (user) {
-                this.currentUser = user;
-                await this.checkUserFamily();
-            } else {
-                window.location.href = 'auth.html';
-            }
-        });
-    }
+   async checkAuthState() {
+    // Show loading screen immediately
+    this.showScreen('loading');
+    
+    auth.onAuthStateChanged(async (user) => {
+        if (user) {
+            this.currentUser = user;
+            await this.checkUserFamily();
+        } else {
+            // If not authenticated after 5 seconds, redirect to auth
+            setTimeout(() => {
+                if (!this.currentUser) {
+                    window.location.href = 'auth.html';
+                }
+            }, 5000);
+        }
+    });
+}
 
   async checkUserFamily() {
     if (!this.currentUser) {
