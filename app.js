@@ -897,28 +897,28 @@ async createFamily() {
     }
 
     switchTab(tabName) {
-        // Update nav buttons
-        const navButtons = document.querySelectorAll('.nav-btn');
-        navButtons.forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.tab === tabName);
-        });
+    // Update nav buttons
+    const navButtons = document.querySelectorAll('.nav-btn');
+    navButtons.forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.tab === tabName);
+    });
 
-        // Update tab contents
-        const tabContents = document.querySelectorAll('.tab-content');
-        tabContents.forEach(tab => {
-            tab.classList.toggle('active', tab.id === `${tabName}Tab`);
-        });
+    // Update tab contents
+    const tabContents = document.querySelectorAll('.tab-content');
+    tabContents.forEach(tab => {
+        tab.classList.toggle('active', tab.id === `${tabName}Tab`);
+    });
 
-        // Load tab-specific data
-        if (tabName === 'purchases') {
-            this.updatePurchaseItemsList();
-            this.updateRecentPurchases();
-        } else if (tabName === 'family') {
-            this.loadFamilyTab();
-        } else if (tabName === 'settings') {
-            this.loadSettingsTab();
-        }
+    // Load tab-specific data
+    if (tabName === 'purchases') {
+        this.updatePurchaseItemsList();
+        this.updateRecentPurchases();
+    } else if (tabName === 'family') {
+        this.loadFamilyTab();
+    } else if (tabName === 'settings') {
+        this.loadSettingsTab();
     }
+}
 
     loadFamilyTab() {
         const familyMembersList = document.getElementById('familyMembersList');
