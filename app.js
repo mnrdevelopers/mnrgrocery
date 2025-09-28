@@ -155,17 +155,6 @@ async createUserDocument() {
         if (purchaseItemSelect) purchaseItemSelect.addEventListener('change', () => this.updatePurchaseForm());
         if (addPriceBtn) addPriceBtn.addEventListener('click', () => this.switchTab('purchases'));
 
-        // Add quick add functionality
-const quickAddBtn = document.getElementById('quickAddBtn');
-const quickItemInput = document.getElementById('quickItemInput');
-
-if (quickAddBtn && quickItemInput) {
-    quickAddBtn.addEventListener('click', () => this.quickAddItem());
-    quickItemInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') this.quickAddItem();
-    });
-}
-
         // Actions
         const copyFamilyCodeBtn = document.getElementById('copyFamilyCode');
         const changeNameBtn = document.getElementById('changeNameBtn');
@@ -434,42 +423,6 @@ async createFamily() {
             }
         }
     }
-
-    async quickAddItem() {
-    const quickItemInput = document.getElementById('quickItemInput');
-    const name = quickItemInput ? quickItemInput.value.trim() : '';
-    
-    if (name === '') {
-        Utils.showToast('Please enter an item name');
-        return;
-    }
-
-    const userDoc = await db.collection('users').doc(this.currentUser.uid).get();
-    const userName = userDoc.exists ? userDoc.data().name : 'User';
-
-    const itemData = {
-        name,
-        quantity: 1,
-        unit: 'pcs',
-        category: 'uncategorized',
-        isUrgent: false,
-        isRecurring: false,
-        completed: false,
-        addedBy: this.currentUser.uid,
-        addedByName: userName,
-        familyId: this.currentFamily,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    };
-
-    try {
-        await db.collection('items').add(itemData);
-        if (quickItemInput) quickItemInput.value = '';
-        Utils.showToast('Item added successfully!');
-    } catch (error) {
-        console.error('Error adding item:', error);
-        Utils.showToast('Error adding item');
-    }
-}
 
     async addItem() {
         const itemInput = document.getElementById('itemInput');
@@ -1002,12 +955,7 @@ async createFamily() {
         if (monthlyPurchasesSpan) monthlyPurchasesSpan.textContent = monthlyPurchases.length;
         if (monthlyTotalSpan) monthlyTotalSpan.textContent = `₹${monthlyTotal.toFixed(0)}`;
         if (monthlyAverageSpan) monthlyAverageSpan.textContent = `₹${monthlyAverage.toFixed(0)}`;
-
-        const activeMembersSpan = document.getElementById('active-members');
-    if (activeMembersSpan) {
-        activeMembersSpan.textContent = this.familyMembers.length;
     }
-}
 
     updateRecentPurchases() {
         const recentPurchasesList = document.getElementById('recent-purchases-list');
