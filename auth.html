@@ -82,5 +82,23 @@
     <script src="firebase-config.js"></script>
     <script src="utils.js"></script>
     <script src="auth.js"></script>
+    <script>
+    // Check if user is already authenticated and redirect immediately
+    document.addEventListener('DOMContentLoaded', function() {
+        // Show loading state on auth page
+        const authCard = document.querySelector('.auth-card');
+        if (authCard) authCard.style.opacity = '0.7';
+        
+        firebase.auth().onAuthStateChanged((user) => {
+            if (user) {
+                // User is already logged in, redirect to app immediately
+                window.location.href = 'app.html';
+            } else {
+                // User is not logged in, show the auth form
+                if (authCard) authCard.style.opacity = '1';
+            }
+        });
+    });
+</script>
 </body>
 </html>
