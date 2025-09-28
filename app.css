@@ -43,7 +43,7 @@ body {
     line-height: 1.5;
 }
 
-/* Loading Screen */
+/* Enhanced Loading Screen */
 .loading-screen {
     position: fixed;
     top: 0;
@@ -57,11 +57,13 @@ body {
     z-index: 9999;
     color: white;
     transition: opacity 0.5s ease;
+    opacity: 0;
 }
 
 .loading-content {
     text-align: center;
     animation: fadeInUp 0.8s ease-out;
+    transform: translateY(0);
 }
 
 .loading-spinner-large {
@@ -70,8 +72,9 @@ body {
     border: 4px solid rgba(255, 255, 255, 0.3);
     border-top: 4px solid white;
     border-radius: 50%;
-    animation: spin 1.5s linear infinite;
+    animation: spin 1.5s linear infinite, pulse 2s ease-in-out infinite;
     margin: 0 auto 30px;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
 }
 
 .loading-content h2 {
@@ -79,11 +82,45 @@ body {
     margin-bottom: 15px;
     font-weight: 700;
     opacity: 0.9;
+    animation: glow 2s ease-in-out infinite alternate;
 }
 
 .loading-content p {
     opacity: 0.8;
     font-size: 1.1rem;
+    animation: fadeIn 2s ease-in-out infinite alternate;
+}
+
+@keyframes glow {
+    from {
+        text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+    }
+    to {
+        text-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% { 
+        transform: scale(1);
+        box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+    }
+    50% { 
+        transform: scale(1.05);
+        box-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
+    }
+}
+
+/* Ensure loading screen stays on top */
+.loading-screen {
+    z-index: 10000 !important;
+}
+
+/* Smooth transitions for screen changes */
+#loadingScreen,
+#familySetupScreen,
+#appScreen {
+    transition: opacity 0.5s ease-in-out;
 }
 
 /* Family Setup Screen */
