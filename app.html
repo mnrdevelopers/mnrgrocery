@@ -317,54 +317,53 @@
     </div>
     
     <div class="card">
-    <div class="family-info-settings">
-        <h3>🔑 Family Code</h3>
-        <p>Share this code with family members to let them join your group</p>
-        <div class="family-code-display">
-            <div class="family-code" id="familyCodeDisplay">Loading...</div>
-            <button class="copy-btn outline" id="copyFamilyCode">Copy</button>
+        <div class="family-info-settings">
+            <h3>🔑 Family Code</h3>
+            <p>Share this code with family members to let them join your group</p>
+            <div class="family-code-display">
+                <div class="family-code" id="familyCodeDisplay">Loading...</div>
+                <button class="copy-btn outline" id="copyFamilyCode">Copy</button>
+            </div>
+            
+            <!-- Quick Invite Buttons -->
+            <div class="invite-actions">
+                <h4>Quick Invite</h4>
+                
+                <!-- Main WhatsApp Button -->
+                <button class="whatsapp-invite-btn full-width pulse" id="whatsappInviteBtn">
+                    <i class="fab fa-whatsapp"></i>
+                    Invite via WhatsApp
+                </button>
+                
+                <!-- Share Code & Link Buttons -->
+                <div class="share-buttons-grid">
+                    <button class="share-btn secondary" id="shareCodeBtn">
+                        <i class="fas fa-copy"></i>
+                        Copy Code
+                    </button>
+                    <button class="share-btn outline" id="shareLinkBtn">
+                        <i class="fas fa-link"></i>
+                        Copy Link
+                    </button>
+                </div>
+                
+                <!-- Additional Invite Options -->
+                <div class="additional-invite-options">
+                    <button class="invite-option-btn" id="emailInviteBtn">
+                        <i class="fas fa-envelope"></i>
+                        Email Invite
+                    </button>
+                    <button class="invite-option-btn" id="bulkInviteBtn">
+                        <i class="fas fa-users"></i>
+                        Bulk Invite
+                    </button>
+                    <button class="invite-option-btn" id="phoneInviteBtn">
+                        <i class="fas fa-phone"></i>
+                        Invite to Number
+                    </button>
+                </div>
+            </div>
         </div>
-        
-       <!-- Quick Invite Buttons -->
-<div class="invite-actions">
-    <h4>Quick Invite</h4>
-    
-    <!-- Main WhatsApp Button -->
-    <button class="whatsapp-invite-btn full-width pulse" id="whatsappInviteBtn">
-        <i class="fab fa-whatsapp"></i>
-        Invite via WhatsApp
-    </button>
-    
-    <!-- Share Code & Link Buttons -->
-    <div class="share-buttons-grid">
-        <button class="share-btn secondary" id="shareCodeBtn">
-            <i class="fas fa-copy"></i>
-            Copy Code
-        </button>
-        <button class="share-btn outline" id="shareLinkBtn">
-            <i class="fas fa-link"></i>
-            Copy Link
-        </button>
-    </div>
-    
-    <!-- Additional Invite Options -->
-    <div class="additional-invite-options">
-        <button class="invite-option-btn" id="emailInviteBtn">
-            <i class="fas fa-envelope"></i>
-            Email Invite
-        </button>
-        <button class="invite-option-btn" id="bulkInviteBtn">
-            <i class="fas fa-users"></i>
-            Bulk Invite
-        </button>
-        <button class="invite-option-btn" id="phoneInviteBtn">
-            <i class="fas fa-phone"></i>
-            Invite to Number
-        </button>
-    </div>
-</div>
-        </div>
-</div>
     </div>
         
     <div class="card">
@@ -389,6 +388,7 @@
         </div>
     </div>
 </div>
+
 
 <!-- Settings Tab -->
 <div id="settingsTab" class="tab-content">
