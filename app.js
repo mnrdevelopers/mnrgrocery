@@ -20,26 +20,38 @@ class GroceryApp {
         this.setupEventListeners();
     }
 
-   async checkAuthState() {
-    // Show loading screen immediately
+  async checkAuthState() {
+    // Show loading screen immediately and keep it visible
     this.showScreen('loading');
     
+    // Set a minimum loading time to ensure spinner is visible
+    const minimumLoadTime = 2000; // 2 seconds minimum
+    const loadStartTime = Date.now();
+    
     auth.onAuthStateChanged(async (user) => {
-        if (user) {
-            this.currentUser = user;
-            await this.checkUserFamily();
-        } else {
-            // If not authenticated after 5 seconds, redirect to auth
-            setTimeout(() => {
-                if (!this.currentUser) {
-                    window.location.href = 'auth.html';
-                }
-            }, 5000);
-        }
+        const loadTime = Date.now() - loadStartTime;
+        const remainingTime = Math.max(0, minimumLoadTime - loadTime);
+        
+        // Wait for minimum load time to ensure smooth UX
+        setTimeout(async () => {
+            if (user) {
+                this.currentUser = user;
+                await this.checkUserFamily();
+            } else {
+                // If not authenticated, redirect to auth page
+                window.location.href = 'auth.html';
+            }
+        }, remainingTime);
+    }, (error) => {
+        console.error('Auth state change error:', error);
+        // Even on error, wait minimum time before redirect
+        setTimeout(() => {
+            window.location.href = 'auth.html';
+        }, minimumLoadTime);
     });
 }
 
-  async checkUserFamily() {
+async checkUserFamily() {
     if (!this.currentUser) {
         window.location.href = 'auth.html';
         return;
@@ -63,7 +75,13 @@ class GroceryApp {
                 console.log('User has family:', this.currentFamily);
                 await this.loadFamilyData();
                 this.updateHeaderUsername();
-                this.showScreen('app');
+                
+                // Add a small delay before showing app for smooth transition
+                setTimeout(() => {
+                    this.showScreen('app');
+                    this.initializeAppAnimations();
+                }, 500);
+                
             } else {
                 console.log('User needs family setup');
                 this.showScreen('familySetup');
@@ -74,15 +92,89 @@ class GroceryApp {
             this.showScreen('familySetup');
         }
         
-        this.hideLoadingScreen();
     } catch (error) {
         console.error("Error checking user family:", error);
         Utils.showToast('Error loading user data: ' + error.message);
         this.showScreen('familySetup');
-        this.hideLoadingScreen();
     }
 }
 
+initializeAppAnimations() {
+    // Add entrance animations to app content
+    const container = document.querySelector('.container');
+    const header = document.querySelector('header');
+    
+    if (container) {
+        container.style.opacity = '0';
+        container.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            container.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+            container.style.opacity = '1';
+            container.style.transform = 'translateY(0)';
+        }, 100);
+    }
+    
+    if (header) {
+        header.style.opacity = '0';
+        header.style.transform = 'translateY(-10px)';
+        
+        setTimeout(() => {
+            header.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+            header.style.opacity = '1';
+            header.style.transform = 'translateY(0)';
+        }, 200);
+    }
+}
+
+showScreen(screen) {
+    const loadingScreen = document.getElementById('loadingScreen');
+    const familySetupScreen = document.getElementById('familySetupScreen');
+    const appScreen = document.getElementById('appScreen');
+
+    // Hide all screens first with transitions
+    const screens = [loadingScreen, familySetupScreen, appScreen];
+    screens.forEach(screen => {
+        if (screen) {
+            screen.style.display = 'none';
+            screen.style.opacity = '0';
+        }
+    });
+
+    // Show the requested screen with animation
+    switch(screen) {
+        case 'loading':
+            if (loadingScreen) {
+                loadingScreen.style.display = 'flex';
+                setTimeout(() => {
+                    loadingScreen.style.opacity = '1';
+                    loadingScreen.style.transition = 'opacity 0.5s ease';
+                }, 50);
+            }
+            break;
+            
+        case 'familySetup':
+            if (familySetupScreen) {
+                familySetupScreen.style.display = 'block';
+                setTimeout(() => {
+                    familySetupScreen.style.opacity = '1';
+                    familySetupScreen.style.transition = 'opacity 0.5s ease';
+                }, 50);
+            }
+            break;
+            
+        case 'app':
+            if (appScreen) {
+                appScreen.style.display = 'block';
+                setTimeout(() => {
+                    appScreen.style.opacity = '1';
+                    appScreen.style.transition = 'opacity 0.5s ease';
+                }, 50);
+            }
+            break;
+    }
+}
+    
 async ensureUserDocumentExists() {
     const userDoc = await db.collection('users').doc(this.currentUser.uid).get();
     
