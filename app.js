@@ -435,6 +435,42 @@ async createFamily() {
         }
     }
 
+    async quickAddItem() {
+    const quickItemInput = document.getElementById('quickItemInput');
+    const name = quickItemInput ? quickItemInput.value.trim() : '';
+    
+    if (name === '') {
+        Utils.showToast('Please enter an item name');
+        return;
+    }
+
+    const userDoc = await db.collection('users').doc(this.currentUser.uid).get();
+    const userName = userDoc.exists ? userDoc.data().name : 'User';
+
+    const itemData = {
+        name,
+        quantity: 1,
+        unit: 'pcs',
+        category: 'uncategorized',
+        isUrgent: false,
+        isRecurring: false,
+        completed: false,
+        addedBy: this.currentUser.uid,
+        addedByName: userName,
+        familyId: this.currentFamily,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    try {
+        await db.collection('items').add(itemData);
+        if (quickItemInput) quickItemInput.value = '';
+        Utils.showToast('Item added successfully!');
+    } catch (error) {
+        console.error('Error adding item:', error);
+        Utils.showToast('Error adding item');
+    }
+}
+
     async addItem() {
         const itemInput = document.getElementById('itemInput');
         const qtyInput = document.getElementById('qtyInput');
