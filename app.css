@@ -819,8 +819,8 @@ button:disabled:hover {
 }
 
 .category-btn.active {
-    background: transparent;
-    color: white;
+    background: white;
+    color: #bf7b24;
     border-color: transparent;
     box-shadow: var(--shadow);
     transform: scale(1.05);
