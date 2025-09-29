@@ -168,6 +168,14 @@ header {
     backdrop-filter: blur(10px);
 }
 
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
 /* Missing button styles */
 .primary, .secondary, .outline, .danger {
     padding: 14px 24px;
@@ -610,6 +618,7 @@ button:disabled:hover {
 }
 
 .stats-grid {
+    display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 15px;
 }
@@ -2151,6 +2160,7 @@ button:disabled:hover {
     }
 
     .stats-grid {
+    display: ruby;
     grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
     gap: 15px;
     }
