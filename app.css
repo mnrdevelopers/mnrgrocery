@@ -819,8 +819,8 @@ button:disabled:hover {
 }
 
 .category-btn.active {
-    background: linear-gradient(135deg, var(--primary) 0, var(--secondary) 100);
-    color: var(--text-primary);
+    background: transparent;
+    color: white;
     border-color: transparent;
     box-shadow: var(--shadow);
     transform: scale(1.05);
