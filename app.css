@@ -3107,3 +3107,40 @@ input:focus, select:focus, textarea:focus {
         font-size: 0.75rem;
     }
 }
+
+/* Expense specific styles */
+.expense-type-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    font-weight: 500;
+}
+
+.expense-status-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    font-weight: 500;
+}
+
+.expense-status-paid {
+    background: var(--success-light);
+    color: var(--success);
+}
+
+.expense-status-pending {
+    background: var(--warning-light);
+    color: var(--warning);
+}
+
+.budget-on-track {
+    color: var(--success);
+}
+
+.budget-warning {
+    color: var(--warning);
+}
+
+.budget-over {
+    color: var(--error);
+}
