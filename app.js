@@ -854,17 +854,36 @@ async deletePurchaseItem(itemId) {
         }
     }
 
-    async deleteItem(id) {
-        if (confirm('Are you sure you want to delete this item?')) {
-            try {
-                await db.collection('items').doc(id).delete();
-                Utils.showToast('Item deleted');
-            } catch (error) {
-                console.error('Error deleting item:', error);
+   async deleteItem(id) {
+    if (confirm('Are you sure you want to delete this item?')) {
+        try {
+            // First check if the document exists
+            const itemDoc = await db.collection('items').doc(id).get();
+            
+            if (!itemDoc.exists) {
+                Utils.showToast('Item not found. It may have been deleted by another user.');
+                // Remove from local state
+                this.groceryItems = this.groceryItems.filter(item => item.id !== id);
+                this.renderItems();
+                return;
+            }
+
+            await db.collection('items').doc(id).delete();
+            Utils.showToast('Item deleted');
+        } catch (error) {
+            console.error('Error deleting item:', error);
+            
+            if (error.code === 'not-found') {
+                Utils.showToast('Item not found. It may have been deleted by another user.');
+                // Remove from local state
+                this.groceryItems = this.groceryItems.filter(item => item.id !== id);
+                this.renderItems();
+            } else {
                 Utils.showToast('Error deleting item: ' + error.message);
             }
         }
     }
+}
 
     async savePurchasePrice() {
         const purchaseItemSelect = document.getElementById('purchaseItemSelect');
