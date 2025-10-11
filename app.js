@@ -295,10 +295,23 @@ class GroceryApp {
         }
     }
 
-    async editPurchaseItem(itemId) {
-        const item = this.groceryItems.find(item => item.id === itemId);
-        if (!item) {
-            Utils.showToast('Item not found');
+ async editPurchaseItem(itemId) {
+    // First check if the item exists locally
+    const item = this.groceryItems.find(item => item.id === itemId);
+    if (!item) {
+        Utils.showToast('Item not found in local list');
+        return;
+    }
+
+    try {
+        // Verify the document exists in Firestore
+        const itemDoc = await db.collection('items').doc(itemId).get();
+        
+        if (!itemDoc.exists) {
+            Utils.showToast('Item not found in database. It may have been deleted.');
+            // Remove from local state
+            this.groceryItems = this.groceryItems.filter(item => item.id !== itemId);
+            this.renderItems();
             return;
         }
 
@@ -323,43 +336,98 @@ class GroceryApp {
         const newDate = prompt('Enter purchase date (YYYY-MM-DD):', item.purchaseDate || '');
         if (newDate === null) return; // User cancelled
 
-        try {
-            await db.collection('items').doc(itemId).update({
-                price: price,
-                store: newStore.trim(),
-                purchaseDate: newDate || item.purchaseDate
-            });
-            
-            Utils.showToast('Purchase updated successfully');
-        } catch (error) {
-            console.error('Error updating purchase:', error);
+        await db.collection('items').doc(itemId).update({
+            price: price,
+            store: newStore.trim(),
+            purchaseDate: newDate || item.purchaseDate
+        });
+        
+        Utils.showToast('Purchase updated successfully');
+    } catch (error) {
+        console.error('Error updating purchase:', error);
+        
+        if (error.code === 'not-found') {
+            Utils.showToast('Item not found in database. It may have been deleted.');
+            // Remove from local state
+            this.groceryItems = this.groceryItems.filter(item => item.id !== itemId);
+            this.renderItems();
+        } else {
             Utils.showToast('Error updating purchase: ' + error.message);
         }
     }
+}
 
-    // Delete purchase item (remove price but keep item)
-    async deletePurchaseItem(itemId) {
-        if (!confirm('Are you sure you want to remove the purchase information for this item? The item will remain in your list but the price will be removed.')) {
+    // Add this method to clean up orphaned items
+cleanupOrphanedItems() {
+    // This method can be called periodically to clean up items that don't exist in Firestore
+    const validItems = [];
+    
+    // Check each item against Firestore
+    const promises = this.groceryItems.map(async (item) => {
+        try {
+            const doc = await db.collection('items').doc(item.id).get();
+            if (doc.exists) {
+                validItems.push(item);
+            }
+            // If doc doesn't exist, it won't be added to validItems (thus removed)
+        } catch (error) {
+            console.error('Error checking item:', item.id, error);
+            // Keep the item if there's an error checking (to be safe)
+            validItems.push(item);
+        }
+    });
+
+    Promise.all(promises).then(() => {
+        if (validItems.length !== this.groceryItems.length) {
+            console.log(`Cleaned up ${this.groceryItems.length - validItems.length} orphaned items`);
+            this.groceryItems = validItems;
+            this.renderItems();
+        }
+    });
+}
+
+  // Delete purchase item (remove price but keep item)
+async deletePurchaseItem(itemId) {
+    if (!confirm('Are you sure you want to remove the purchase information for this item? The item will remain in your list but the price will be removed.')) {
+        return;
+    }
+
+    try {
+        // First check if the document exists
+        const itemDoc = await db.collection('items').doc(itemId).get();
+        
+        if (!itemDoc.exists) {
+            Utils.showToast('Item not found. It may have been deleted by another user.');
+            // Remove from local state if it doesn't exist in Firestore
+            this.groceryItems = this.groceryItems.filter(item => item.id !== itemId);
+            this.renderItems();
             return;
         }
 
-        try {
-            await db.collection('items').doc(itemId).update({
-                price: null,
-                store: null,
-                purchaseDate: null,
-                completed: false,
-                completedBy: null,
-                completedAt: null,
-                completedByName: null
-            });
-            
-            Utils.showToast('Purchase information removed');
-        } catch (error) {
-            console.error('Error removing purchase info:', error);
+        await db.collection('items').doc(itemId).update({
+            price: null,
+            store: null,
+            purchaseDate: null,
+            completed: false,
+            completedBy: null,
+            completedAt: null,
+            completedByName: null
+        });
+        
+        Utils.showToast('Purchase information removed');
+    } catch (error) {
+        console.error('Error removing purchase info:', error);
+        
+        if (error.code === 'not-found') {
+            Utils.showToast('Item not found. It may have been deleted by another user.');
+            // Remove from local state
+            this.groceryItems = this.groceryItems.filter(item => item.id !== itemId);
+            this.renderItems();
+        } else {
             Utils.showToast('Error removing purchase info: ' + error.message);
         }
     }
+}
 
     async createFamily() {
         const familyCode = Utils.generateFamilyCode();
@@ -1213,6 +1281,7 @@ class GroceryApp {
             this.updatePurchaseItemsList();
             this.renderPurchaseTable();
             this.updatePurchaseFilters();
+            this.cleanupOrphanedItems();
         } else if (tabName === 'family') {
             this.loadFamilyTab();
         } else if (tabName === 'settings') {
