@@ -138,6 +138,36 @@ class GroceryApp {
         if (searchInput) searchInput.addEventListener('input', (e) => this.handleSearch(e));
         if (clearSearch) clearSearch.addEventListener('click', () => this.clearSearchInput());
 
+        // Expense-related listeners
+    const saveExpenseBtn = document.getElementById('saveExpenseBtn');
+    const clearExpenseFilters = document.getElementById('clearExpenseFilters');
+    const expenseTypeFilter = document.getElementById('expenseTypeFilter');
+    const expenseStatusFilter = document.getElementById('expenseStatusFilter');
+    const expenseMonthFilter = document.getElementById('expenseMonthFilter');
+    
+    if (saveExpenseBtn) saveExpenseBtn.addEventListener('click', () => this.saveExpense());
+    if (clearExpenseFilters) clearExpenseFilters.addEventListener('click', () => this.clearExpenseFilters());
+    if (expenseTypeFilter) expenseTypeFilter.addEventListener('change', () => this.renderExpensesTable());
+    if (expenseStatusFilter) expenseStatusFilter.addEventListener('change', () => this.renderExpensesTable());
+    if (expenseMonthFilter) expenseMonthFilter.addEventListener('change', () => this.renderExpensesTable());
+    
+    // Set default dates for expense form
+    this.setExpenseDefaultDates();
+}
+    setExpenseDefaultDates() {
+    const today = new Date().toISOString().split('T')[0];
+    const expenseDueDate = document.getElementById('expenseDueDate');
+    const expensePaymentDate = document.getElementById('expensePaymentDate');
+    
+    // Set due date to end of current month
+    const endOfMonth = new Date();
+    endOfMonth.setMonth(endOfMonth.getMonth() + 1);
+    endOfMonth.setDate(0); // Last day of current month
+    
+    if (expenseDueDate) expenseDueDate.value = endOfMonth.toISOString().split('T')[0];
+    if (expensePaymentDate) expensePaymentDate.value = today;
+}
+
         // Categories
         const categoryButtons = document.querySelectorAll('.category-btn');
         categoryButtons.forEach(btn => {
@@ -382,6 +412,66 @@ class GroceryApp {
             Utils.showToast(errorMessage);
         }
     }
+
+async saveExpense() {
+    const expenseType = document.getElementById('expenseType').value;
+    const expenseAmount = parseFloat(document.getElementById('expenseAmount').value);
+    const expenseDueDate = document.getElementById('expenseDueDate').value;
+    const expensePaymentDate = document.getElementById('expensePaymentDate').value;
+    const expenseDescription = document.getElementById('expenseDescription').value.trim();
+    const expensePaid = document.getElementById('expensePaid').checked;
+    const expenseRecurring = document.getElementById('expenseRecurring').checked;
+
+    if (!expenseType) {
+        Utils.showToast('Please select an expense type');
+        return;
+    }
+
+    if (!expenseAmount || expenseAmount <= 0) {
+        Utils.showToast('Please enter a valid amount');
+        return;
+    }
+
+    if (!expenseDueDate) {
+        Utils.showToast('Please select a due date');
+        return;
+    }
+
+    const userDoc = await db.collection('users').doc(this.currentUser.uid).get();
+    const userName = userDoc.exists ? userDoc.data().name : 'User';
+
+    const expenseData = {
+        type: expenseType,
+        amount: expenseAmount,
+        dueDate: expenseDueDate,
+        paymentDate: expensePaid ? expensePaymentDate : null,
+        description: expenseDescription,
+        paid: expensePaid,
+        isRecurring: expenseRecurring,
+        addedBy: this.currentUser.uid,
+        addedByName: userName,
+        familyId: this.currentFamily,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        month: expenseDueDate.substring(0, 7) // YYYY-MM format for filtering
+    };
+
+    try {
+        await db.collection('expenses').add(expenseData);
+        
+        // Clear form
+        document.getElementById('expenseType').value = '';
+        document.getElementById('expenseAmount').value = '';
+        document.getElementById('expenseDescription').value = '';
+        document.getElementById('expensePaid').checked = false;
+        document.getElementById('expenseRecurring').checked = false;
+        this.setExpenseDefaultDates();
+        
+        Utils.showToast('Expense added successfully');
+    } catch (error) {
+        console.error('Error saving expense:', error);
+        Utils.showToast('Error saving expense: ' + error.message);
+    }
+}
 
     async joinFamily() {
         const familyCodeInput = document.getElementById('familyCodeInput');
@@ -1094,6 +1184,12 @@ class GroceryApp {
         }
     }
 
+ if (tabName === 'expenses') {
+        this.renderExpensesTable();
+        this.updateExpensesSummary();
+    }
+}
+
     loadFamilyTab() {
         const familyMembersList = document.getElementById('familyMembersList');
         if (!familyMembersList) return;
@@ -1438,3 +1534,185 @@ let app;
 document.addEventListener('DOMContentLoaded', () => {
     app = new GroceryApp();
 });
+
+renderExpensesTable() {
+    const tableBody = document.getElementById('expenses-table-body');
+    const emptyState = document.getElementById('expenses-empty');
+    
+    if (!tableBody || !emptyState) return;
+
+    // This would need to be connected to your Firestore expenses collection
+    // For now, I'll show the structure - you'll need to implement the data loading
+    const expenses = []; // This should come from your Firestore
+    
+    const typeFilter = document.getElementById('expenseTypeFilter')?.value || 'all';
+    const statusFilter = document.getElementById('expenseStatusFilter')?.value || 'all';
+    const monthFilter = document.getElementById('expenseMonthFilter')?.value || '';
+    
+    let filteredExpenses = expenses.filter(expense => {
+        const matchesType = typeFilter === 'all' || expense.type === typeFilter;
+        const matchesStatus = statusFilter === 'all' || 
+                            (statusFilter === 'paid' ? expense.paid : !expense.paid);
+        const matchesMonth = !monthFilter || expense.month === monthFilter;
+        
+        return matchesType && matchesStatus && matchesMonth;
+    });
+
+    tableBody.innerHTML = '';
+    
+    if (filteredExpenses.length > 0) {
+        emptyState.style.display = 'none';
+        tableBody.style.display = 'block';
+        
+        filteredExpenses.forEach(expense => {
+            const row = document.createElement('div');
+            row.className = 'purchase-table-row';
+            row.innerHTML = this.createExpenseTableRowHTML(expense);
+            tableBody.appendChild(row);
+        });
+    } else {
+        emptyState.style.display = 'block';
+        tableBody.style.display = 'none';
+    }
+
+    this.updateExpensesSummary(filteredExpenses);
+}
+
+createExpenseTableRowHTML(expense) {
+    const typeLabels = {
+        'electricity': '⚡ Electricity',
+        'water': '💧 Water',
+        'internet': '🌐 Internet',
+        'gas': '🔥 Gas',
+        'rent': '🏠 Rent',
+        'maintenance': '🔧 Maintenance',
+        'insurance': '🛡️ Insurance',
+        'other': '📦 Other'
+    };
+
+    const formattedDueDate = Utils.formatDate(expense.dueDate);
+    const formattedPaymentDate = expense.paymentDate ? Utils.formatDate(expense.paymentDate) : '-';
+    const isAddedByCurrentUser = expense.addedBy === this.currentUser.uid;
+
+    return `
+        <div class="purchase-table-cell" data-label="Type">
+            <span class="expense-type-badge expense-type-${expense.type}">
+                ${typeLabels[expense.type] || expense.type}
+            </span>
+        </div>
+        <div class="purchase-table-cell" data-label="Description">
+            ${expense.description || '-'}
+        </div>
+        <div class="purchase-table-cell price-cell" data-label="Amount">
+            ₹${expense.amount?.toFixed(2) || '0.00'}
+        </div>
+        <div class="purchase-table-cell date-cell" data-label="Due Date">
+            ${formattedDueDate}
+        </div>
+        <div class="purchase-table-cell date-cell" data-label="Payment Date">
+            ${formattedPaymentDate}
+        </div>
+        <div class="purchase-table-cell" data-label="Status">
+            <span class="expense-status-badge expense-status-${expense.paid ? 'paid' : 'pending'}">
+                ${expense.paid ? '✅ Paid' : '⏳ Pending'}
+            </span>
+        </div>
+        <div class="purchase-table-cell added-by-cell" data-label="Added By">
+            <div class="added-by-avatar">${expense.addedByName ? expense.addedByName.charAt(0).toUpperCase() : 'U'}</div>
+            <span>${expense.addedByName}</span>
+        </div>
+        <div class="purchase-table-cell actions-cell" data-label="Actions">
+            ${isAddedByCurrentUser ? `
+                <button class="table-action-btn edit-btn" onclick="app.editExpense('${expense.id}')">
+                    <span>✏️</span> Edit
+                </button>
+                <button class="table-action-btn delete-btn-purchase" onclick="app.deleteExpense('${expense.id}')">
+                    <span>🗑️</span> Delete
+                </button>
+            ` : `
+                <span class="text-secondary">-</span>
+            `}
+        </div>
+    `;
+}
+
+updateExpensesSummary(expenses = []) {
+    const monthlyTotal = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+    const paidTotal = expenses.filter(e => e.paid).reduce((sum, expense) => sum + expense.amount, 0);
+    const pendingTotal = monthlyTotal - paidTotal;
+
+    const monthlyExpensesTotal = document.getElementById('monthly-expenses-total');
+    const monthlyExpensesPaid = document.getElementById('monthly-expenses-paid');
+    const monthlyExpensesPending = document.getElementById('monthly-expenses-pending');
+    const budgetStatus = document.getElementById('budget-status');
+    const filteredExpensesCount = document.getElementById('filtered-expenses-count');
+    const filteredExpensesTotal = document.getElementById('filtered-expenses-total');
+
+    if (monthlyExpensesTotal) monthlyExpensesTotal.textContent = `₹${monthlyTotal.toFixed(0)}`;
+    if (monthlyExpensesPaid) monthlyExpensesPaid.textContent = `₹${paidTotal.toFixed(0)}`;
+    if (monthlyExpensesPending) monthlyExpensesPending.textContent = `₹${pendingTotal.toFixed(0)}`;
+    if (filteredExpensesCount) filteredExpensesCount.textContent = expenses.length;
+    if (filteredExpensesTotal) filteredExpensesTotal.textContent = `₹${monthlyTotal.toFixed(2)}`;
+
+    // Budget status logic
+    if (budgetStatus && this.userPreferences.budget) {
+        const groceryTotal = this.calculateMonthlyGroceryTotal();
+        const totalSpending = monthlyTotal + groceryTotal;
+        const budgetPercentage = (totalSpending / this.userPreferences.budget) * 100;
+
+        if (budgetPercentage < 70) {
+            budgetStatus.textContent = 'On Track';
+            budgetStatus.className = 'summary-value budget-on-track';
+        } else if (budgetPercentage < 90) {
+            budgetStatus.textContent = 'Warning';
+            budgetStatus.className = 'summary-value budget-warning';
+        } else {
+            budgetStatus.textContent = 'Over Budget';
+            budgetStatus.className = 'summary-value budget-over';
+        }
+    }
+}
+
+calculateMonthlyGroceryTotal() {
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
+    const monthlyPurchases = this.groceryItems.filter(item => {
+        if (!item.purchaseDate) return false;
+        const purchaseDate = new Date(item.purchaseDate);
+        return purchaseDate.getMonth() === currentMonth && 
+               purchaseDate.getFullYear() === currentYear;
+    });
+
+    return monthlyPurchases.reduce((sum, item) => sum + (item.price || 0), 0);
+}
+
+clearExpenseFilters() {
+    const typeFilter = document.getElementById('expenseTypeFilter');
+    const statusFilter = document.getElementById('expenseStatusFilter');
+    const monthFilter = document.getElementById('expenseMonthFilter');
+    
+    if (typeFilter) typeFilter.value = 'all';
+    if (statusFilter) statusFilter.value = 'all';
+    if (monthFilter) monthFilter.value = '';
+    
+    this.renderExpensesTable();
+}
+
+async editExpense(expenseId) {
+    // Implement expense editing logic
+    Utils.showToast('Edit expense functionality coming soon!');
+}
+
+async deleteExpense(expenseId) {
+    if (confirm('Are you sure you want to delete this expense?')) {
+        try {
+            await db.collection('expenses').doc(expenseId).delete();
+            Utils.showToast('Expense deleted successfully');
+        } catch (error) {
+            console.error('Error deleting expense:', error);
+            Utils.showToast('Error deleting expense: ' + error.message);
+        }
+    }
+}
