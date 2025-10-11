@@ -3034,3 +3034,76 @@ input:focus, select:focus, textarea:focus {
     transform: translateY(-2px);
     box-shadow: var(--shadow-md);
 }
+
+/* Expenses Section Styles */
+.expense-form {
+    margin-top: 20px;
+}
+
+.expense-type-badge {
+    padding: 6px 12px;
+    border-radius: 15px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.expense-type-electricity { background: linear-gradient(135deg, #FFD93D 0%, #FF6B6B 100%); color: white; }
+.expense-type-water { background: linear-gradient(135deg, #4D96FF 0%, #6BCF77 100%); color: white; }
+.expense-type-internet { background: linear-gradient(135deg, #9B59B6 0%, #3498DB 100%); color: white; }
+.expense-type-gas { background: linear-gradient(135deg, #E74C3C 0%, #F39C12 100%); color: white; }
+.expense-type-rent { background: linear-gradient(135deg, #27AE60 0%, #2ECC71 100%); color: white; }
+.expense-type-maintenance { background: linear-gradient(135deg, #95A5A6 0%, #7F8C8D 100%); color: white; }
+.expense-type-insurance { background: linear-gradient(135deg, #2980B9 0%, #34495E 100%); color: white; }
+.expense-type-other { background: linear-gradient(135deg, #BDC3C7 0%, #95A5A6 100%); color: white; }
+
+.expense-status-badge {
+    padding: 6px 12px;
+    border-radius: 15px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.expense-status-paid { background: var(--success); color: white; }
+.expense-status-pending { background: var(--warning); color: white; }
+
+/* Budget status colors */
+.budget-on-track { color: var(--success); }
+.budget-warning { color: var(--warning); }
+.budget-over { color: var(--danger); }
+
+/* Expense table responsive styles */
+@media (max-width: 768px) {
+    .expenses-table-container .table-header {
+        grid-template-columns: 1fr;
+        display: none;
+    }
+    
+    .expense-table-row {
+        grid-template-columns: 1fr;
+        gap: 0;
+        padding: 15px;
+        border: 1px solid var(--divider);
+        border-radius: var(--radius);
+        margin-bottom: 10px;
+    }
+    
+    .expense-table-cell {
+        padding: 8px 0;
+        justify-content: space-between;
+        border-bottom: 1px solid var(--divider);
+    }
+    
+    .expense-table-cell:last-child {
+        border-bottom: none;
+    }
+    
+    .expense-table-cell::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        font-size: 0.75rem;
+    }
+}
