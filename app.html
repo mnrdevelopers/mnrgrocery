@@ -401,149 +401,6 @@
     </div>
 </div>
 
-            <!-- Expenses Tab -->
-<div id="expensesTab" class="tab-content">
-    <div class="card">
-        <h2 class="section-title">💰 Household Expenses</h2>
-        <p class="purchase-help">Track all your monthly household expenses in one place</p>
-        
-        <div class="expense-form">
-            <div class="form-grid">
-                <div class="form-group">
-                    <label>Expense Type</label>
-                    <select id="expenseType" class="purchase-select">
-                        <option value="">-- Select Expense Type --</option>
-                        <option value="electricity">⚡ Electricity Bill</option>
-                        <option value="water">💧 Water Bill</option>
-                        <option value="internet">🌐 Internet Bill</option>
-                        <option value="gas">🔥 Gas Bill</option>
-                        <option value="rent">🏠 Rent/Mortgage</option>
-                        <option value="maintenance">🔧 Maintenance</option>
-                        <option value="insurance">🛡️ Insurance</option>
-                        <option value="other">📦 Other</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Amount (₹)</label>
-                    <input type="number" id="expenseAmount" placeholder="0.00" min="0" step="0.01">
-                </div>
-            </div>
-            
-            <div class="form-grid">
-                <div class="form-group">
-                    <label>Due Date</label>
-                    <input type="date" id="expenseDueDate">
-                </div>
-                <div class="form-group">
-                    <label>Payment Date</label>
-                    <input type="date" id="expensePaymentDate">
-                </div>
-            </div>
-            
-            <div class="form-group">
-                <label>Description (Optional)</label>
-                <input type="text" id="expenseDescription" placeholder="e.g., June electricity bill, maintenance fee">
-            </div>
-            
-            <div class="form-options">
-                <label class="checkbox-label">
-                    <input type="checkbox" id="expensePaid"> 
-                    <span class="checkmark"></span>
-                    ✅ Mark as paid
-                </label>
-                <label class="checkbox-label">
-                    <input type="checkbox" id="expenseRecurring">
-                    <span class="checkmark"></span>
-                    🔄 Recurring monthly
-                </label>
-            </div>
-            
-            <button id="saveExpenseBtn" class="primary full-width">
-                💾 Add Expense
-            </button>
-        </div>
-    </div>
-
-    <div class="card">
-        <h3>📈 Monthly Expenses Summary</h3>
-        <div class="summary-stats">
-            <div class="summary-item">
-                <span class="summary-label">Total Expenses</span>
-                <span class="summary-value" id="monthly-expenses-total">₹0</span>
-            </div>
-            <div class="summary-item">
-                <span class="summary-label">Paid</span>
-                <span class="summary-value" id="monthly-expenses-paid">₹0</span>
-            </div>
-            <div class="summary-item">
-                <span class="summary-label">Pending</span>
-                <span class="summary-value" id="monthly-expenses-pending">₹0</span>
-            </div>
-            <div class="summary-item">
-                <span class="summary-label">Budget Status</span>
-                <span class="summary-value" id="budget-status">On Track</span>
-            </div>
-        </div>
-    </div>
-
-    <div class="card">
-        <div class="purchases-header">
-            <h3>📋 Expense History</h3>
-            <div class="purchase-filters">
-                <select id="expenseTypeFilter" class="filter-select">
-                    <option value="all">All Types</option>
-                    <option value="electricity">⚡ Electricity</option>
-                    <option value="water">💧 Water</option>
-                    <option value="internet">🌐 Internet</option>
-                    <option value="gas">🔥 Gas</option>
-                    <option value="rent">🏠 Rent</option>
-                    <option value="maintenance">🔧 Maintenance</option>
-                    <option value="insurance">🛡️ Insurance</option>
-                    <option value="other">📦 Other</option>
-                </select>
-                <select id="expenseStatusFilter" class="filter-select">
-                    <option value="all">All Status</option>
-                    <option value="paid">✅ Paid</option>
-                    <option value="pending">⏳ Pending</option>
-                </select>
-                <input type="month" id="expenseMonthFilter" class="filter-select">
-                <button class="section-action" id="clearExpenseFilters">Clear Filters</button>
-            </div>
-        </div>
-        
-        <div class="purchases-table-container">
-            <div class="table-header">
-                <div class="table-cell">Type</div>
-                <div class="table-cell">Description</div>
-                <div class="table-cell">Amount</div>
-                <div class="table-cell">Due Date</div>
-                <div class="table-cell">Payment Date</div>
-                <div class="table-cell">Status</div>
-                <div class="table-cell">Added By</div>
-                <div class="table-cell">Actions</div>
-            </div>
-            <div class="table-body" id="expenses-table-body">
-                <!-- Expenses rows will be inserted here -->
-            </div>
-            <div id="expenses-empty" class="empty-state" style="display: none;">
-                <div class="empty-state-icon">💰</div>
-                <p>No expenses recorded yet</p>
-                <p class="text-secondary">Add your first expense to start tracking</p>
-            </div>
-        </div>
-        
-        <div class="purchases-summary">
-            <div class="summary-row">
-                <span>Filtered Expenses:</span>
-                <span id="filtered-expenses-count">0</span>
-            </div>
-            <div class="summary-row">
-                <span>Filtered Total:</span>
-                <span id="filtered-expenses-total">₹0</span>
-            </div>
-        </div>
-    </div>
-</div>
 
 <!-- Settings Tab -->
 <div id="settingsTab" class="tab-content">
@@ -597,28 +454,25 @@
     </div>
 </div>
 
-       <div class="bottom-nav">
-    <button class="nav-btn active" data-tab="list">
-        <span>🛒</span>
-        <span>List</span>
-    </button>
-    <button class="nav-btn" data-tab="purchases">
-        <span>💰</span>
-        <span>Prices</span>
-    </button>
-    <button class="nav-btn" data-tab="expenses">
-        <span>🧾</span>
-        <span>Expenses</span>
-    </button>
-    <button class="nav-btn" data-tab="family">
-        <span>👨‍👩‍👧‍👦</span>
-        <span>Family</span>
-    </button>
-    <button class="nav-btn" data-tab="settings">
-        <span>⚙️</span>
-        <span>Settings</span>
-    </button>
-</div>
+        <div class="bottom-nav">
+            <button class="nav-btn active" data-tab="list">
+                <span>🛒</span>
+                <span>List</span>
+            </button>
+            <button class="nav-btn" data-tab="purchases">
+                <span>💰</span>
+                <span>Prices</span>
+            </button>
+            <button class="nav-btn" data-tab="family">
+                <span>👨‍👩‍👧‍👦</span>
+                <span>Family</span>
+            </button>
+            <button class="nav-btn" data-tab="settings">
+                <span>⚙️</span>
+                <span>Settings</span>
+            </button>
+        </div>
+    </div>
 
     <!-- Toast Notification -->
     <div class="toast" id="toast"></div>
