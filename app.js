@@ -483,65 +483,70 @@ async deletePurchaseItem(itemId) {
         }
     }
 
-    async saveExpense() {
-        const expenseType = document.getElementById('expenseType').value;
-        const expenseAmount = parseFloat(document.getElementById('expenseAmount').value);
-        const expenseDueDate = document.getElementById('expenseDueDate').value;
-        const expensePaymentDate = document.getElementById('expensePaymentDate').value;
-        const expenseDescription = document.getElementById('expenseDescription').value.trim();
-        const expensePaid = document.getElementById('expensePaid').checked;
-        const expenseRecurring = document.getElementById('expenseRecurring').checked;
+   async saveExpense() {
+    const expenseType = document.getElementById('expenseType').value;
+    const expenseAmount = parseFloat(document.getElementById('expenseAmount').value);
+    const expenseDueDate = document.getElementById('expenseDueDate').value;
+    const expensePaymentDate = document.getElementById('expensePaymentDate').value;
+    const expenseDescription = document.getElementById('expenseDescription').value.trim();
+    const expensePaid = document.getElementById('expensePaid').checked;
+    const expenseRecurring = document.getElementById('expenseRecurring').checked;
 
-        if (!expenseType) {
-            Utils.showToast('Please select an expense type');
-            return;
-        }
-
-        if (!expenseAmount || expenseAmount <= 0) {
-            Utils.showToast('Please enter a valid amount');
-            return;
-        }
-
-        if (!expenseDueDate) {
-            Utils.showToast('Please select a due date');
-            return;
-        }
-
-        const userDoc = await db.collection('users').doc(this.currentUser.uid).get();
-        const userName = userDoc.exists ? userDoc.data().name : 'User';
-
-        const expenseData = {
-            type: expenseType,
-            amount: expenseAmount,
-            dueDate: expenseDueDate,
-            paymentDate: expensePaid ? expensePaymentDate : null,
-            description: expenseDescription,
-            paid: expensePaid,
-            isRecurring: expenseRecurring,
-            addedBy: this.currentUser.uid,
-            addedByName: userName,
-            familyId: this.currentFamily,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-            month: expenseDueDate.substring(0, 7) // YYYY-MM format for filtering
-        };
-
-        try {
-            await db.collection('expenses').add(expenseData);
-            
-            // Clear form
-            document.getElementById('expenseType').value = '';
-            document.getElementById('expenseAmount').value = '';
-            document.getElementById('expenseDescription').value = '';
-            document.getElementById('expensePaid').checked = false;
-            document.getElementById('expenseRecurring').checked = false;
-            this.setExpenseDefaultDates();
-            
-            Utils.showToast('Expense added successfully');
-        } catch (error) {
-            console.error('Error saving expense:', error);
-            Utils.showToast('Error saving expense: ' + error.message);
-        }
+    if (!expenseType) {
+        Utils.showToast('Please select an expense type');
+        return;
     }
+
+    if (!expenseAmount || expenseAmount <= 0) {
+        Utils.showToast('Please enter a valid amount');
+        return;
+    }
+
+    if (!expenseDueDate) {
+        Utils.showToast('Please select a due date');
+        return;
+    }
+
+    if (expensePaid && !expensePaymentDate) {
+        Utils.showToast('Please select payment date for paid expenses');
+        return;
+    }
+
+    const userDoc = await db.collection('users').doc(this.currentUser.uid).get();
+    const userName = userDoc.exists ? userDoc.data().name : 'User';
+
+    const expenseData = {
+        type: expenseType,
+        amount: expenseAmount,
+        dueDate: expenseDueDate,
+        paymentDate: expensePaid ? expensePaymentDate : null,
+        description: expenseDescription,
+        paid: expensePaid,
+        isRecurring: expenseRecurring,
+        addedBy: this.currentUser.uid,
+        addedByName: userName,
+        familyId: this.currentFamily,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        month: expenseDueDate.substring(0, 7)
+    };
+
+    try {
+        await db.collection('expenses').add(expenseData);
+        
+        // Clear form
+        document.getElementById('expenseType').value = '';
+        document.getElementById('expenseAmount').value = '';
+        document.getElementById('expenseDescription').value = '';
+        document.getElementById('expensePaid').checked = false;
+        document.getElementById('expenseRecurring').checked = false;
+        this.setExpenseDefaultDates();
+        
+        Utils.showToast('Expense added successfully');
+    } catch (error) {
+        console.error('Error saving expense:', error);
+        Utils.showToast('Error saving expense: ' + error.message);
+    }
+}
 
     async joinFamily() {
         const familyCodeInput = document.getElementById('familyCodeInput');
@@ -658,35 +663,30 @@ async deletePurchaseItem(itemId) {
                 });
 
             // Add expenses listener
-            this.expensesUnsubscribe = db.collection('expenses')
-                .where('familyId', '==', this.currentFamily)
-                .onSnapshot((snapshot) => {
-                    console.log('Expenses snapshot received:', snapshot.size, 'expenses');
-                    
-                    this.expenses = [];
-                    snapshot.forEach((doc) => {
-                        const expenseData = doc.data();
-                        this.expenses.push({
-                            id: doc.id,
-                            ...expenseData
-                        });
-                    });
+           this.expensesUnsubscribe = db.collection('expenses')
+    .where('familyId', '==', this.currentFamily)
+    .orderBy('createdAt', 'desc')
+    .onSnapshot((snapshot) => {
+        console.log('Expenses snapshot received:', snapshot.size, 'expenses');
+        
+        this.expenses = [];
+        snapshot.forEach((doc) => {
+            const expenseData = doc.data();
+            this.expenses.push({
+                id: doc.id,
+                ...expenseData
+            });
+        });
 
-                    this.expenses.sort((a, b) => {
-                        const dateA = a.createdAt?.toDate() || new Date(0);
-                        const dateB = b.createdAt?.toDate() || new Date(0);
-                        return dateB - dateA;
-                    });
-
-                    console.log('Processed expenses:', this.expenses.length);
-                    this.renderExpensesTable();
-                    this.updateExpensesSummary();
-                    
-                }, (error) => {
-                    console.error('Error listening to expenses:', error);
-                    Utils.showToast('Error loading expenses: ' + error.message);
-                });
-
+        console.log('Processed expenses:', this.expenses.length);
+        this.renderExpensesTable();
+        this.updateExpensesSummary();
+        
+    }, (error) => {
+        console.error('Error listening to expenses:', error);
+        Utils.showToast('Error loading expenses: ' + error.message);
+    });
+            
             this.familyUnsubscribe = db.collection('families').doc(this.currentFamily)
                 .onSnapshot(async (doc) => {
                     if (doc.exists) {
@@ -1653,47 +1653,61 @@ async deletePurchaseItem(itemId) {
     }
 
     // Expenses methods
-    renderExpensesTable() {
-        const tableBody = document.getElementById('expenses-table-body');
-        const emptyState = document.getElementById('expenses-empty');
-        
-        if (!tableBody || !emptyState) return;
+   renderExpensesTable() {
+    const tableBody = document.getElementById('expenses-table-body');
+    const emptyState = document.getElementById('expenses-empty');
+    const filteredExpensesCount = document.getElementById('filtered-expenses-count');
+    const filteredExpensesTotal = document.getElementById('filtered-expenses-total');
+    
+    if (!tableBody || !emptyState) return;
 
-        const expenses = this.expenses || [];
+    const expenses = this.expenses || [];
+    
+    const typeFilter = document.getElementById('expenseTypeFilter')?.value || 'all';
+    const statusFilter = document.getElementById('expenseStatusFilter')?.value || 'all';
+    const monthFilter = document.getElementById('expenseMonthFilter')?.value || '';
+    
+    let filteredExpenses = expenses.filter(expense => {
+        const matchesType = typeFilter === 'all' || expense.type === typeFilter;
+        const matchesStatus = statusFilter === 'all' || 
+                            (statusFilter === 'paid' ? expense.paid : !expense.paid);
+        const matchesMonth = !monthFilter || expense.month === monthFilter;
         
-        const typeFilter = document.getElementById('expenseTypeFilter')?.value || 'all';
-        const statusFilter = document.getElementById('expenseStatusFilter')?.value || 'all';
-        const monthFilter = document.getElementById('expenseMonthFilter')?.value || '';
-        
-        let filteredExpenses = expenses.filter(expense => {
-            const matchesType = typeFilter === 'all' || expense.type === typeFilter;
-            const matchesStatus = statusFilter === 'all' || 
-                                (statusFilter === 'paid' ? expense.paid : !expense.paid);
-            const matchesMonth = !monthFilter || expense.month === monthFilter;
-            
-            return matchesType && matchesStatus && matchesMonth;
-        });
+        return matchesType && matchesStatus && matchesMonth;
+    });
 
-        tableBody.innerHTML = '';
-        
-        if (filteredExpenses.length > 0) {
-            emptyState.style.display = 'none';
-            tableBody.style.display = 'block';
-            
-            filteredExpenses.forEach(expense => {
-                const row = document.createElement('div');
-                row.className = 'purchase-table-row';
-                row.innerHTML = this.createExpenseTableRowHTML(expense);
-                tableBody.appendChild(row);
-            });
-        } else {
-            emptyState.style.display = 'block';
-            tableBody.style.display = 'none';
-        }
-
-        this.updateExpensesSummary(filteredExpenses);
+    // Update table header grid template
+    const tableHeader = document.querySelector('#expenses-table-body').closest('.purchases-table-container').querySelector('.table-header');
+    if (tableHeader) {
+        tableHeader.style.gridTemplateColumns = '1fr 2fr 1fr 1fr 1fr 1fr 1fr 1fr';
     }
 
+    tableBody.innerHTML = '';
+    
+    if (filteredExpenses.length > 0) {
+        emptyState.style.display = 'none';
+        tableBody.style.display = 'grid';
+        
+        filteredExpenses.forEach(expense => {
+            const row = document.createElement('div');
+            row.className = 'purchase-table-row';
+            row.style.gridTemplateColumns = '1fr 2fr 1fr 1fr 1fr 1fr 1fr 1fr';
+            row.innerHTML = this.createExpenseTableRowHTML(expense);
+            tableBody.appendChild(row);
+        });
+    } else {
+        emptyState.style.display = 'block';
+        tableBody.style.display = 'none';
+    }
+
+    const totalAmount = filteredExpenses.reduce((sum, expense) => sum + (expense.amount || 0), 0);
+    
+    if (filteredExpensesCount) filteredExpensesCount.textContent = filteredExpenses.length;
+    if (filteredExpensesTotal) filteredExpensesTotal.textContent = `₹${totalAmount.toFixed(2)}`;
+
+    this.updateExpensesSummary(filteredExpenses);
+}
+    
     createExpenseTableRowHTML(expense) {
         const typeLabels = {
             'electricity': '⚡ Electricity',
