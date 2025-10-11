@@ -1542,7 +1542,8 @@ async saveExpense() {
         } catch (error) {
             Utils.showToast('Error logging out: ' + error.message);
         }
-    }
+     }
+  }
 }
 
 let app;
