@@ -1830,20 +1830,42 @@ async deletePurchaseItem(itemId) {
         this.renderExpensesTable();
     }
 
-    async editExpense(expenseId) {
-        // Implement expense editing logic
-        Utils.showToast('Edit expense functionality coming soon!');
+  async editExpense(expenseId) {
+    const expense = this.expenses.find(e => e.id === expenseId);
+    if (!expense) {
+        Utils.showToast('Expense not found');
+        return;
     }
 
-    async deleteExpense(expenseId) {
-        if (confirm('Are you sure you want to delete this expense?')) {
-            try {
-                await db.collection('expenses').doc(expenseId).delete();
-                Utils.showToast('Expense deleted successfully');
-            } catch (error) {
-                console.error('Error deleting expense:', error);
-                Utils.showToast('Error deleting expense: ' + error.message);
-            }
+    // Simple edit implementation - you can enhance this with a modal
+    const newAmount = prompt('Enter new amount:', expense.amount);
+    if (newAmount === null) return;
+
+    const amount = parseFloat(newAmount);
+    if (isNaN(amount) || amount <= 0) {
+        Utils.showToast('Please enter a valid amount');
+        return;
+    }
+
+    try {
+        await db.collection('expenses').doc(expenseId).update({
+            amount: amount
+        });
+        Utils.showToast('Expense updated successfully');
+    } catch (error) {
+        console.error('Error updating expense:', error);
+        Utils.showToast('Error updating expense: ' + error.message);
+    }
+}
+
+async deleteExpense(expenseId) {
+    if (confirm('Are you sure you want to delete this expense?')) {
+        try {
+            await db.collection('expenses').doc(expenseId).delete();
+            Utils.showToast('Expense deleted successfully');
+        } catch (error) {
+            console.error('Error deleting expense:', error);
+            Utils.showToast('Error deleting expense: ' + error.message);
         }
     }
 }
