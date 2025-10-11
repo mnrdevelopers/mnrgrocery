@@ -1,18 +1,20 @@
 // Main application functionality
 class GroceryApp {
-    constructor() {
-        this.currentUser = null;
-        this.currentFamily = null;
-        this.groceryItems = [];
-        this.familyMembers = [];
-        this.currentFilter = 'all';
-        this.currentSearch = '';
-        this.itemsUnsubscribe = null;
-        this.familyUnsubscribe = null;
-        this.userPreferences = {};
-        
-        this.init();
-    }
+  constructor() {
+    this.currentUser = null;
+    this.currentFamily = null;
+    this.groceryItems = [];
+    this.expenses = []; // Add this line
+    this.familyMembers = [];
+    this.currentFilter = 'all';
+    this.currentSearch = '';
+    this.itemsUnsubscribe = null;
+    this.expensesUnsubscribe = null; // Add this line
+    this.familyUnsubscribe = null;
+    this.userPreferences = {};
+    
+    this.init();
+}
 
     async init() {
         await this.checkAuthState();
@@ -113,32 +115,32 @@ class GroceryApp {
         console.log('User document created successfully');
     }
 
-    setupEventListeners() {
-        // Family setup
-        const createFamilyBtn = document.getElementById('createFamilyBtn');
-        const joinFamilyBtn = document.getElementById('joinFamilyBtn');
-        const logoutFromSetup = document.getElementById('logoutFromSetup');
-        
-        if (createFamilyBtn) createFamilyBtn.addEventListener('click', () => this.createFamily());
-        if (joinFamilyBtn) joinFamilyBtn.addEventListener('click', () => this.joinFamily());
-        if (logoutFromSetup) logoutFromSetup.addEventListener('click', () => this.logoutUser());
+  setupEventListeners() {
+    // Family setup
+    const createFamilyBtn = document.getElementById('createFamilyBtn');
+    const joinFamilyBtn = document.getElementById('joinFamilyBtn');
+    const logoutFromSetup = document.getElementById('logoutFromSetup');
+    
+    if (createFamilyBtn) createFamilyBtn.addEventListener('click', () => this.createFamily());
+    if (joinFamilyBtn) joinFamilyBtn.addEventListener('click', () => this.joinFamily());
+    if (logoutFromSetup) logoutFromSetup.addEventListener('click', () => this.logoutUser());
 
-        // Main app
-        const addItemBtn = document.getElementById('addItemBtn');
-        const itemInput = document.getElementById('itemInput');
-        const searchInput = document.getElementById('searchInput');
-        const clearSearch = document.getElementById('clearSearch');
-        
-        if (addItemBtn) addItemBtn.addEventListener('click', () => this.addItem());
-        if (itemInput) {
-            itemInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') this.addItem();
-            });
-        }
-        if (searchInput) searchInput.addEventListener('input', (e) => this.handleSearch(e));
-        if (clearSearch) clearSearch.addEventListener('click', () => this.clearSearchInput());
+    // Main app
+    const addItemBtn = document.getElementById('addItemBtn');
+    const itemInput = document.getElementById('itemInput');
+    const searchInput = document.getElementById('searchInput');
+    const clearSearch = document.getElementById('clearSearch');
+    
+    if (addItemBtn) addItemBtn.addEventListener('click', () => this.addItem());
+    if (itemInput) {
+        itemInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') this.addItem();
+        });
+    }
+    if (searchInput) searchInput.addEventListener('input', (e) => this.handleSearch(e));
+    if (clearSearch) clearSearch.addEventListener('click', () => this.clearSearchInput());
 
-        // Expense-related listeners
+    // Expense-related listeners
     const saveExpenseBtn = document.getElementById('saveExpenseBtn');
     const clearExpenseFilters = document.getElementById('clearExpenseFilters');
     const expenseTypeFilter = document.getElementById('expenseTypeFilter');
@@ -153,99 +155,85 @@ class GroceryApp {
     
     // Set default dates for expense form
     this.setExpenseDefaultDates();
-}
-    setExpenseDefaultDates() {
-    const today = new Date().toISOString().split('T')[0];
-    const expenseDueDate = document.getElementById('expenseDueDate');
-    const expensePaymentDate = document.getElementById('expensePaymentDate');
+
+    // Categories
+    const categoryButtons = document.querySelectorAll('.category-btn');
+    categoryButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            categoryButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            this.currentFilter = btn.dataset.category;
+            this.renderItems();
+        });
+    });
+
+    // Navigation tabs
+    const navButtons = document.querySelectorAll('.nav-btn');
+    navButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tab = btn.dataset.tab;
+            this.switchTab(tab);
+        });
+    });
+
+    // Purchase-related
+    const savePriceBtn = document.getElementById('savePriceBtn');
+    const purchaseItemSelect = document.getElementById('purchaseItemSelect');
+    const addPriceBtn = document.getElementById('addPriceBtn');
     
-    // Set due date to end of current month
-    const endOfMonth = new Date();
-    endOfMonth.setMonth(endOfMonth.getMonth() + 1);
-    endOfMonth.setDate(0); // Last day of current month
+    if (savePriceBtn) savePriceBtn.addEventListener('click', () => this.savePurchasePrice());
+    if (purchaseItemSelect) purchaseItemSelect.addEventListener('change', () => this.updatePurchaseForm());
+    if (addPriceBtn) addPriceBtn.addEventListener('click', () => this.switchTab('purchases'));
+
+    // Purchase filter listeners
+    const categoryFilter = document.getElementById('purchaseCategoryFilter');
+    const storeFilter = document.getElementById('purchaseStoreFilter');
+    const monthFilter = document.getElementById('purchaseMonthFilter');
+    const clearFilters = document.getElementById('clearPurchaseFilters');
     
-    if (expenseDueDate) expenseDueDate.value = endOfMonth.toISOString().split('T')[0];
-    if (expensePaymentDate) expensePaymentDate.value = today;
+    if (categoryFilter) categoryFilter.addEventListener('change', () => this.renderPurchaseTable());
+    if (storeFilter) storeFilter.addEventListener('change', () => this.renderPurchaseTable());
+    if (monthFilter) monthFilter.addEventListener('change', () => this.renderPurchaseTable());
+    if (clearFilters) clearFilters.addEventListener('click', () => this.clearPurchaseFilters());
+
+    // Purchase table action listeners
+    document.addEventListener('click', (e) => {
+        if (e.target.closest('.edit-btn')) {
+            const button = e.target.closest('.edit-btn');
+            const itemId = button.dataset.id;
+            this.editPurchaseItem(itemId);
+        }
+        
+        if (e.target.closest('.delete-btn-purchase')) {
+            const button = e.target.closest('.delete-btn-purchase');
+            const itemId = button.dataset.id;
+            this.deletePurchaseItem(itemId);
+        }
+    });
+
+    // Actions
+    const copyFamilyCodeBtn = document.getElementById('copyFamilyCode');
+    const changeNameBtn = document.getElementById('changeNameBtn');
+    const setBudgetBtn = document.getElementById('setBudgetBtn');
+    const leaveFamilyBtn = document.getElementById('leaveFamilyBtn');
+    const exportDataBtn = document.getElementById('exportDataBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const headerLogout = document.getElementById('headerLogout');
+    const clearCompleted = document.getElementById('clearCompleted');
+    
+    if (copyFamilyCodeBtn) copyFamilyCodeBtn.addEventListener('click', () => this.copyFamilyCode());
+    if (changeNameBtn) changeNameBtn.addEventListener('click', () => this.changeUserName());
+    if (setBudgetBtn) setBudgetBtn.addEventListener('click', () => this.setMonthlyBudget());
+    if (leaveFamilyBtn) leaveFamilyBtn.addEventListener('click', () => this.leaveFamily());
+    if (exportDataBtn) exportDataBtn.addEventListener('click', () => this.exportShoppingData());
+    if (logoutBtn) logoutBtn.addEventListener('click', () => this.logoutUser());
+    if (headerLogout) headerLogout.addEventListener('click', () => this.logoutUser());
+    if (clearCompleted) clearCompleted.addEventListener('click', () => this.clearCompletedItems());
+
+    // Set default dates
+    this.setDefaultDates();
 }
-
-        // Categories
-        const categoryButtons = document.querySelectorAll('.category-btn');
-        categoryButtons.forEach(btn => {
-            btn.addEventListener('click', () => {
-                categoryButtons.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                this.currentFilter = btn.dataset.category;
-                this.renderItems();
-            });
-        });
-
-        // Navigation tabs
-        const navButtons = document.querySelectorAll('.nav-btn');
-        navButtons.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const tab = btn.dataset.tab;
-                this.switchTab(tab);
-            });
-        });
-
-        // Purchase-related
-        const savePriceBtn = document.getElementById('savePriceBtn');
-        const purchaseItemSelect = document.getElementById('purchaseItemSelect');
-        const addPriceBtn = document.getElementById('addPriceBtn');
-        
-        if (savePriceBtn) savePriceBtn.addEventListener('click', () => this.savePurchasePrice());
-        if (purchaseItemSelect) purchaseItemSelect.addEventListener('change', () => this.updatePurchaseForm());
-        if (addPriceBtn) addPriceBtn.addEventListener('click', () => this.switchTab('purchases'));
-
-        // Purchase filter listeners
-        const categoryFilter = document.getElementById('purchaseCategoryFilter');
-        const storeFilter = document.getElementById('purchaseStoreFilter');
-        const monthFilter = document.getElementById('purchaseMonthFilter');
-        const clearFilters = document.getElementById('clearPurchaseFilters');
-        
-        if (categoryFilter) categoryFilter.addEventListener('change', () => this.renderPurchaseTable());
-        if (storeFilter) storeFilter.addEventListener('change', () => this.renderPurchaseTable());
-        if (monthFilter) monthFilter.addEventListener('change', () => this.renderPurchaseTable());
-        if (clearFilters) clearFilters.addEventListener('click', () => this.clearPurchaseFilters());
-
-        // Purchase table action listeners
-        document.addEventListener('click', (e) => {
-            if (e.target.closest('.edit-btn')) {
-                const button = e.target.closest('.edit-btn');
-                const itemId = button.dataset.id;
-                this.editPurchaseItem(itemId);
-            }
-            
-            if (e.target.closest('.delete-btn-purchase')) {
-                const button = e.target.closest('.delete-btn-purchase');
-                const itemId = button.dataset.id;
-                this.deletePurchaseItem(itemId);
-            }
-        });
-
-        // Actions
-        const copyFamilyCodeBtn = document.getElementById('copyFamilyCode');
-        const changeNameBtn = document.getElementById('changeNameBtn');
-        const setBudgetBtn = document.getElementById('setBudgetBtn');
-        const leaveFamilyBtn = document.getElementById('leaveFamilyBtn');
-        const exportDataBtn = document.getElementById('exportDataBtn');
-        const logoutBtn = document.getElementById('logoutBtn');
-        const headerLogout = document.getElementById('headerLogout');
-        const clearCompleted = document.getElementById('clearCompleted');
-        
-        if (copyFamilyCodeBtn) copyFamilyCodeBtn.addEventListener('click', () => this.copyFamilyCode());
-        if (changeNameBtn) changeNameBtn.addEventListener('click', () => this.changeUserName());
-        if (setBudgetBtn) setBudgetBtn.addEventListener('click', () => this.setMonthlyBudget());
-        if (leaveFamilyBtn) leaveFamilyBtn.addEventListener('click', () => this.leaveFamily());
-        if (exportDataBtn) exportDataBtn.addEventListener('click', () => this.exportShoppingData());
-        if (logoutBtn) logoutBtn.addEventListener('click', () => this.logoutUser());
-        if (headerLogout) headerLogout.addEventListener('click', () => this.logoutUser());
-        if (clearCompleted) clearCompleted.addEventListener('click', () => this.clearCompletedItems());
-
-        // Set default dates
-        this.setDefaultDates();
-    }
-
+    
     setDefaultDates() {
         const today = new Date().toISOString().split('T')[0];
         const dateInput = document.getElementById('dateInput');
@@ -535,77 +523,107 @@ async saveExpense() {
         }
     }
 
-    async loadFamilyData() {
-        if (!this.currentFamily) {
-            console.error('No current family set');
-            return;
-        }
-
-        if (this.itemsUnsubscribe) {
-            this.itemsUnsubscribe();
-            this.itemsUnsubscribe = null;
-        }
-        if (this.familyUnsubscribe) {
-            this.familyUnsubscribe();
-            this.familyUnsubscribe = null;
-        }
-
-        try {
-            this.itemsUnsubscribe = db.collection('items')
-                .where('familyId', '==', this.currentFamily)
-                .onSnapshot((snapshot) => {
-                    console.log('Items snapshot received:', snapshot.size, 'items');
-                    
-                    this.groceryItems = [];
-                    snapshot.forEach((doc) => {
-                        const itemData = doc.data();
-                        this.groceryItems.push({
-                            id: doc.id,
-                            ...itemData
-                        });
-                    });
-
-                    this.groceryItems.sort((a, b) => {
-                        const dateA = a.createdAt?.toDate() || new Date(0);
-                        const dateB = b.createdAt?.toDate() || new Date(0);
-                        return dateB - dateA;
-                    });
-
-                    console.log('Processed items:', this.groceryItems.length);
-                    this.renderItems();
-                    this.updateStats();
-                    this.updatePurchaseItemsList();
-                    this.renderPurchaseTable();
-                    this.updateFamilyStats();
-                    
-                }, (error) => {
-                    console.error('Error listening to items:', error);
-                    Utils.showToast('Error loading items: ' + error.message);
-                });
-
-            this.familyUnsubscribe = db.collection('families').doc(this.currentFamily)
-                .onSnapshot(async (doc) => {
-                    if (doc.exists) {
-                        const familyData = doc.data();
-                        console.log('Family data loaded:', familyData);
-                        await this.loadFamilyMembers(familyData.members || []);
-                        const familyCodeDisplay = document.getElementById('familyCodeDisplay');
-                        if (familyCodeDisplay) familyCodeDisplay.textContent = this.currentFamily;
-                    } else {
-                        console.error('Family document not found');
-                        Utils.showToast('Family not found');
-                    }
-                }, (error) => {
-                    console.error('Error listening to family:', error);
-                    Utils.showToast('Error loading family data: ' + error.message);
-                });
-
-        } catch (error) {
-            console.error('Error setting up listeners:', error);
-            Utils.showToast('Error setting up data listeners');
-        }
+   async loadFamilyData() {
+    if (!this.currentFamily) {
+        console.error('No current family set');
+        return;
     }
 
+    if (this.itemsUnsubscribe) {
+        this.itemsUnsubscribe();
+        this.itemsUnsubscribe = null;
+    }
+    if (this.familyUnsubscribe) {
+        this.familyUnsubscribe();
+        this.familyUnsubscribe = null;
+    }
+
+    try {
+        this.itemsUnsubscribe = db.collection('items')
+            .where('familyId', '==', this.currentFamily)
+            .onSnapshot((snapshot) => {
+                console.log('Items snapshot received:', snapshot.size, 'items');
+                
+                this.groceryItems = [];
+                snapshot.forEach((doc) => {
+                    const itemData = doc.data();
+                    this.groceryItems.push({
+                        id: doc.id,
+                        ...itemData
+                    });
+                });
+
+                this.groceryItems.sort((a, b) => {
+                    const dateA = a.createdAt?.toDate() || new Date(0);
+                    const dateB = b.createdAt?.toDate() || new Date(0);
+                    return dateB - dateA;
+                });
+
+                console.log('Processed items:', this.groceryItems.length);
+                this.renderItems();
+                this.updateStats();
+                this.updatePurchaseItemsList();
+                this.renderPurchaseTable();
+                this.updateFamilyStats();
+                
+            }, (error) => {
+                console.error('Error listening to items:', error);
+                Utils.showToast('Error loading items: ' + error.message);
+            });
+
+        // Add expenses listener
+        this.expensesUnsubscribe = db.collection('expenses')
+            .where('familyId', '==', this.currentFamily)
+            .onSnapshot((snapshot) => {
+                console.log('Expenses snapshot received:', snapshot.size, 'expenses');
+                
+                this.expenses = [];
+                snapshot.forEach((doc) => {
+                    const expenseData = doc.data();
+                    this.expenses.push({
+                        id: doc.id,
+                        ...expenseData
+                    });
+                });
+
+                this.expenses.sort((a, b) => {
+                    const dateA = a.createdAt?.toDate() || new Date(0);
+                    const dateB = b.createdAt?.toDate() || new Date(0);
+                    return dateB - dateA;
+                });
+
+                console.log('Processed expenses:', this.expenses.length);
+                this.renderExpensesTable();
+                this.updateExpensesSummary();
+                
+            }, (error) => {
+                console.error('Error listening to expenses:', error);
+                Utils.showToast('Error loading expenses: ' + error.message);
+            });
+
+        this.familyUnsubscribe = db.collection('families').doc(this.currentFamily)
+            .onSnapshot(async (doc) => {
+                if (doc.exists) {
+                    const familyData = doc.data();
+                    console.log('Family data loaded:', familyData);
+                    await this.loadFamilyMembers(familyData.members || []);
+                    const familyCodeDisplay = document.getElementById('familyCodeDisplay');
+                    if (familyCodeDisplay) familyCodeDisplay.textContent = this.currentFamily;
+                } else {
+                    console.error('Family document not found');
+                    Utils.showToast('Family not found');
+                }
+            }, (error) => {
+                console.error('Error listening to family:', error);
+                Utils.showToast('Error loading family data: ' + error.message);
+            });
+
+    } catch (error) {
+        console.error('Error setting up listeners:', error);
+        Utils.showToast('Error setting up data listeners');
+    }
+}
+    
     async loadFamilyMembers(memberIds) {
         if (!memberIds || !Array.isArray(memberIds)) return;
         
@@ -1162,34 +1180,31 @@ async saveExpense() {
         }
     }
 
-    switchTab(tabName) {
-        const navButtons = document.querySelectorAll('.nav-btn');
-        navButtons.forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.tab === tabName);
-        });
+   switchTab(tabName) {
+    const navButtons = document.querySelectorAll('.nav-btn');
+    navButtons.forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.tab === tabName);
+    });
 
-        const tabContents = document.querySelectorAll('.tab-content');
-        tabContents.forEach(tab => {
-            tab.classList.toggle('active', tab.id === `${tabName}Tab`);
-        });
+    const tabContents = document.querySelectorAll('.tab-content');
+    tabContents.forEach(tab => {
+        tab.classList.toggle('active', tab.id === `${tabName}Tab`);
+    });
 
-        if (tabName === 'purchases') {
-            this.updatePurchaseItemsList();
-            this.renderPurchaseTable();
-            this.updatePurchaseFilters();
-        } else if (tabName === 'family') {
-            this.loadFamilyTab();
-        } else if (tabName === 'settings') {
-            this.loadSettingsTab();
-        }
-    }
-
- if (tabName === 'expenses') {
+    if (tabName === 'purchases') {
+        this.updatePurchaseItemsList();
+        this.renderPurchaseTable();
+        this.updatePurchaseFilters();
+    } else if (tabName === 'family') {
+        this.loadFamilyTab();
+    } else if (tabName === 'settings') {
+        this.loadSettingsTab();
+    } else if (tabName === 'expenses') {
         this.renderExpensesTable();
         this.updateExpensesSummary();
     }
 }
-
+    
     loadFamilyTab() {
         const familyMembersList = document.getElementById('familyMembersList');
         if (!familyMembersList) return;
@@ -1515,17 +1530,17 @@ async saveExpense() {
         console.log('=== END DEBUG ===');
     }
 
-    async logoutUser() {
-        if (confirm('Are you sure you want to logout?')) {
-            if (this.itemsUnsubscribe) this.itemsUnsubscribe();
-            if (this.familyUnsubscribe) this.familyUnsubscribe();
+   async logoutUser() {
+    if (confirm('Are you sure you want to logout?')) {
+        if (this.itemsUnsubscribe) this.itemsUnsubscribe();
+        if (this.expensesUnsubscribe) this.expensesUnsubscribe(); // Add this line
+        if (this.familyUnsubscribe) this.familyUnsubscribe();
 
-            try {
-                await auth.signOut();
-                window.location.href = 'index.html';
-            } catch (error) {
-                Utils.showToast('Error logging out: ' + error.message);
-            }
+        try {
+            await auth.signOut();
+            window.location.href = 'index.html';
+        } catch (error) {
+            Utils.showToast('Error logging out: ' + error.message);
         }
     }
 }
@@ -1541,9 +1556,8 @@ renderExpensesTable() {
     
     if (!tableBody || !emptyState) return;
 
-    // This would need to be connected to your Firestore expenses collection
-    // For now, I'll show the structure - you'll need to implement the data loading
-    const expenses = []; // This should come from your Firestore
+    // Use the actual expenses data
+    const expenses = this.expenses || [];
     
     const typeFilter = document.getElementById('expenseTypeFilter')?.value || 'all';
     const statusFilter = document.getElementById('expenseStatusFilter')?.value || 'all';
